@@ -1,0 +1,130 @@
+---
+title: 'Build production-ready resource pages from content'
+description: "Builds production-ready resource center pages from content markdown files — hub pages, section listings, article pages, and cross-linking — using the client's tech stack."
+---
+
+This skill takes existing content markdown files (produced by the write-seo-geo-content skill) and implements production-final resource pages on client websites. It uses the client's existing tech stack and design system to build hub pages, section listings, article pages, and cross-linking for Blog, Guides, Learn, and Comparisons sections. The output ships directly to production — no review pass, no placeholder content, no prototype styling.
+
+<Warning>
+Every page is production-final. No rough edges, no placeholder text. The pages you build are the pages visitors see.
+</Warning>
+
+## What it produces
+
+The skill builds a complete resource center with:
+
+- **Resource hub** (`/resources`) — featured content section, section navigation cards, recent content grid
+- **Section listing pages** (`/resources/learn`, `/resources/guides`, `/resources/blog`, `/resources/comparisons`) — card grids with filter support, sorted by date
+- **Article pages** (`/resources/[section]/[slug]`) — full markdown rendering with structured data, head metadata, table of contents, and related content
+- **Navigation and cross-linking** — breadcrumbs, related content cards, section navigation, internal link resolution
+
+## Usage
+
+Invoke with `/build-resource-pages` and provide the path to the client codebase:
+
+```
+/build-resource-pages path/to/client-codebase
+```
+
+<Note>
+Always report framework findings to the user before proceeding. Confirm stack, styling approach, existing components to reuse, and content loading mechanism. Do not write any code until the user acknowledges the findings.
+</Note>
+
+## Supported frameworks
+
+Next.js, Nuxt 3, SvelteKit, Astro, Remix, plain React, and any framework with a file-based or dynamic routing model. The skill adapts to the framework's native content loading patterns — no external CMS or new dependencies required.
+
+## Implementation workflow
+
+<Steps>
+  <Step title="Discover the stack">
+    Before writing any code, understand what you're working with:
+
+    - **Framework** — Next.js, Astro, Nuxt, SvelteKit, Remix, plain React, etc.
+    - **Design system** — theme files (CSS variables, Tailwind config, styled-components), color tokens, typography (font families, sizes, weights, line heights), existing components (cards, shells, layouts, navigation, buttons, CTAs), and spacing system
+    - **Content patterns** — how the site already renders markdown or structured content (MDX loaders, content collections, CMS integrations, static generation patterns)
+    - **Routing pattern** — file-based routing, dynamic routes, or manual route config
+    - **Page structure** — how existing pages handle `<head>` metadata, Open Graph tags, canonical URLs, and structured data
+
+    Report all findings to the user and confirm before proceeding.
+  </Step>
+  <Step title="Load the content">
+    1. Read `content_architecture.md` from the customer's workspace folder
+    2. Scan `workspace/[brand]/content/resources/` for all content across `learn/`, `guides/`, `blog/`, `comparisons/`
+    3. Build a manifest of: slug, title, section, subsection, date, keywords, description, and any `supports` relationships from frontmatter
+    4. Confirm with the user which sections to implement
+  </Step>
+  <Step title="Build the resource center">
+    Implement in layers — each builds on the previous:
+
+    **a. Content loading** — Set up the mechanism to read markdown files with YAML frontmatter. Use the framework's native approach (Next.js `fs` + gray-matter + remark, Astro content collections, Nuxt content module). Parse frontmatter into typed metadata. Render markdown body to HTML with full element support: tables, blockquotes, code blocks, nested lists, bold/italic, inline links. Pass JSON-LD script blocks through to rendered output without stripping them.
+
+    **b. Layout components** — Build or extend using the site's existing design system. Never introduce a competing style system.
+
+    - *Resource Shell* — page wrapper with consistent max-width, padding, breadcrumb navigation (Home → Resources → [Section] → [Page Title]), and optional sidebar table of contents
+    - *Content Card* — thumbnail or category badge, CSS-truncated title (2-3 lines), description excerpt, section label, date, hover state matching the site
+    - *Article Layout* — H1 from title, date/author/section label, rendered markdown body, direct answer block styled with visual prominence, data tables with alternating rows and mobile scroll, FAQ sections with clear question/answer separation, related content cards, single CTA matching the site's existing CTA component
+
+    **c. Listing pages** — Resource hub at `/resources` with featured content and section navigation cards. One listing page per section at `/resources/learn`, `/resources/guides`, `/resources/blog`, `/resources/comparisons`. Card grid: 2-3 columns, responsive, sorted by date with optional editorial ordering via frontmatter priority.
+
+    **d. Article pages** — Dynamic routes at `/resources/[section]/[slug]`. Generate `<head>` metadata from frontmatter. Inject JSON-LD from the markdown into `<head>` or end of `<body>`. Build table of contents from H2/H3 headings. Render internal links as framework Link components for client-side navigation. Style the direct answer block (first paragraph or blockquote under the H1) with visual prominence — it is the most important element on the page.
+
+    **e. Cross-linking** — Related content at the bottom of each article (3 cards from the same section, prioritizing shared keywords or explicit `supports` relationships). Resolve internal links in markdown body as working navigation. Breadcrumb and "Back to [Section]" on every article. Cross-section links rendered as styled inline links or callout cards.
+  </Step>
+</Steps>
+
+## Production quality standards
+
+<AccordionGroup>
+  <Accordion title="Typography and readability">
+    - Article body: 16-18px minimum font size, 1.6-1.8 line height, 65-75 character line length
+    - Headings: clear visual hierarchy with consistent spacing above and below
+    - Paragraphs: adequate spacing between blocks — dense text walls lose readers
+    - Lists: proper indentation, consistent bullet/number styling, adequate vertical spacing
+    - Code blocks: monospace font, background tint, horizontal scroll on overflow
+    - Blockquotes: left border accent, slight background tint, italic or distinct styling
+  </Accordion>
+  <Accordion title="Data tables">
+    - Alternating row backgrounds or subtle borders for scanability
+    - Left-aligned text, right-aligned numbers
+    - Cell padding: generous enough to read without squinting
+    - Horizontal scroll wrapper on mobile — tables must not break page layout
+    - Header row: bold, slightly different background, sticky if the table is long
+  </Accordion>
+  <Accordion title="FAQ sections">
+    - Each question styled as a clear H3 heading
+    - Answer text visually grouped with its question
+    - Adequate spacing between Q&A pairs
+    - FAQ content should feel like a natural part of the article, not a bolted-on appendix
+  </Accordion>
+  <Accordion title="Structured data">
+    - JSON-LD blocks from markdown must appear in the rendered page output — do not strip them
+    - FAQPage schema: every FAQ section gets it
+    - Article schema: generated from frontmatter (title, date, author, description)
+    - Validate that JSON-LD is well-formed — malformed structured data is worse than none
+  </Accordion>
+  <Accordion title="Page metadata">
+    Every article page must have complete, correct `<head>` metadata. If frontmatter is missing a required field, flag it — do not silently skip.
+
+    ```html
+    <title>{title_tag}</title>
+    <meta name="description" content="{description}" />
+    <link rel="canonical" href="{full_url}" />
+    <meta property="og:title" content="{title_tag}" />
+    <meta property="og:description" content="{description}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="{full_url}" />
+    <meta property="article:published_time" content="{date}" />
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Design principles
+
+**Match the site, don't fight it.** Use existing color tokens, typography, and spacing — never hardcode values. If the site has a dark theme, the resource center is dark. Reuse existing components (buttons, links, layout wrappers) before creating new ones. Follow the same responsive breakpoints the site already uses.
+
+**Structure for scanning.** Card grids: 3 columns on desktop, 2 on tablet, 1 on mobile. Cards have consistent anatomy: badge + title + excerpt + date. Listing pages use filter tabs or buttons, not search-first. Generous whitespace between cards — density kills scanability.
+
+**Education leads, product follows.** No aggressive CTAs interrupting content. Product mentions live in dedicated zones: header bar, article footer, sidebar — not sprinkled through the content. One CTA per article, at the bottom, matching the site's existing CTA component.
+
+These patterns come from how Stripe, Linear, Vanta, and Vercel build their resource centers.

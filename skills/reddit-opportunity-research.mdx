@@ -1,0 +1,137 @@
+---
+title: "Map Reddit opportunities for content and promotion"
+description: "Finds promotable Reddit discussions, target subreddits, and real user language using brand_dna.md — outputs a ranked opportunity map for content and promotion."
+---
+
+The `reddit-opportunity-research` skill finds where a brand can participate helpfully on Reddit, what pain points users are actively discussing, and what search language should feed content strategy and GEO prompt research. It is built for **promotion through useful participation** — every recommendation answers a real user need, fits the subreddit culture, and points to content only when it genuinely helps. The output is a ranked Reddit opportunity map saved to `reddit_opportunities.md`.
+
+<Note>
+**Platform note:** ChatGPT has native Reddit access and can search and read threads directly. Claude generally does not have live Reddit access and relies on web search (`site:reddit.com` queries) to surface relevant content. If you are running this skill in Claude, the research quality depends on how well Reddit threads are indexed by the search engine in use — some threads may not be visible. ChatGPT will typically produce broader and deeper Reddit coverage for this skill.
+</Note>
+
+## What it produces
+
+`reddit_opportunities.md` is organized into six sections:
+
+| Section | Contents |
+|---|---|
+| **Summary** | Counts of subreddits targeted, immediate opportunities, build-content-first, monitor, and skipped |
+| **Pain points users discuss** | Table of pains with exact user phrasing, affected audience, opportunity level, and notes |
+| **Target subreddits** | Table of subreddits with relevance rationale, common discussion types, promotion fit, and recommended motion |
+| **Ranked opportunity list** | Full prioritized table: subreddit, thread theme, user intent, pain, brand fit, best move, asset needed |
+| **Search simulation** | Likely Google/Reddit searches and likely AI prompts derived from real Reddit language |
+| **Content ideas triggered by Reddit** | Comparison pages, guides, templates, and myth-busters with the source pain and target subreddit |
+
+## Usage
+
+Invoke the skill after running `research-brand`. The skill reads `brand_dna.md` from the project directory — if it does not exist, it will tell you to run `research-brand` first.
+
+```text
+/reddit-opportunity-research
+```
+
+Optional inputs that expand the research scope:
+- `keyword_research.md` — expands the query set with commercial and problem-intent terms
+- `geo_prompt_targets.md` — connects Reddit questions to GEO opportunities
+- Existing content URLs — maps threads to assets worth sharing
+
+## Research process
+
+<Steps>
+  <Step title="Load brand context">
+    The skill reads `brand_dna.md` and extracts the product category, core audience segments, main pains the product solves, competitors and alternatives, differentiators, and trust signals. Before searching, it writes three search buckets: **problem searches** (pain points and jobs-to-be-done), **solution searches** (category, alternatives, comparisons), and **competitor searches** (reviews, complaints, migration discussions).
+  </Step>
+  <Step title="Build Reddit search queries">
+    20–40 searches are constructed using combinations of the brand context:
+
+    - `site:reddit.com [pain point]`
+    - `site:reddit.com [pain point] help`
+    - `site:reddit.com [pain point] recommendation`
+    - `site:reddit.com best [category]`
+    - `site:reddit.com [category] vs [alternative]`
+    - `site:reddit.com [competitor] review`
+    - `site:reddit.com [competitor] alternative`
+    - `site:reddit.com how to [job to be done]`
+    - `site:reddit.com [audience role] [pain point]`
+    - `site:reddit.com [use case] [category]`
+
+    If `keyword_research.md` is present, its commercial and problem-intent terms expand the query set further.
+  </Step>
+  <Step title="Extract opportunity signals">
+    For every promising thread or recurring discussion pattern, the skill captures: subreddit, thread topic, user pain point in plain words, how users phrase their search query, whether users are asking for recommendations/comparisons/troubleshooting/workflows, competitors already mentioned, whether the brand could credibly add value, and the best asset to share (comment only, existing content, new content needed, or no-fit).
+  </Step>
+  <Step title="Score opportunities">
+    Each opportunity is scored across five dimensions (see table below) and assigned one of four labels:
+
+    - **Immediate** — clear fit for helpful participation now
+    - **Build Content First** — good subreddit and topic, but the brand needs a better asset before engaging
+    - **Monitor** — interesting signal, not ready to act
+    - **Skip** — poor fit, spam risk, or weak relevance
+
+    The final ranked opportunity list is sorted best-first.
+  </Step>
+  <Step title="Simulate user search and AI prompt demand">
+    From the Reddit language, the skill synthesizes three outputs: (1) likely Google and Reddit searches — converting repeated Reddit wording into search queries; (2) likely AI prompts — turning discussion themes into natural-language questions for ChatGPT, Perplexity, and Gemini; and (3) content ideas the brand should create — comparison pages, problem-solution guides, templates/checklists, opinionated "best for" pages, and trust-building explainers.
+  </Step>
+</Steps>
+
+## Scoring criteria
+
+| Dimension | What it measures |
+|---|---|
+| **Pain intensity** | How urgent or frustrating the problem sounds in the thread |
+| **Promotion fit** | Whether the brand can respond naturally without forcing a mention |
+| **Content fit** | Whether a guide, comparison, checklist, or post would genuinely help the thread |
+| **Community fit** | Whether the subreddit is active and relevant to the brand's audience |
+| **Repeatability** | Whether this is a recurring discussion pattern, not a one-off thread |
+
+## Output structure
+
+The saved `reddit_opportunities.md` file follows this template:
+
+```markdown
+# Reddit Opportunity Research — [Brand Name]
+
+**Generated:** [date]
+**Based on:** brand_dna.md, [other files used]
+
+## Summary
+- **Subreddits worth targeting:** [number]
+- **Immediate opportunities:** [number]
+- **Build-content-first opportunities:** [number]
+- **Monitor:** [number]
+- **Skipped:** [number]
+
+## 1. Pain Points Users Discuss
+| Pain Point | How Users Phrase It | Who Feels It | Opportunity Level | Notes |
+
+## 2. Target Subreddits
+| Subreddit | Why It Matters | Common Discussion Types | Promotion Fit | Recommended Motion |
+
+## 3. Ranked Opportunity List
+| Priority | Subreddit | Thread Theme / Discussion Pattern | User Intent | Pain Point | Brand Fit | Best Move | Asset Needed |
+
+## 4. Search Simulation
+### Likely Google / Reddit Searches
+### Likely AI Prompts
+
+## 5. Content Ideas Triggered by Reddit
+| Content Idea | Source Pain Point | Target Subreddit | Format | Why It Will Travel |
+
+## 6. Next Actions
+```
+
+<Tip>
+Thread-level thinking beats generic subreddit lists. The output identifies concrete discussion patterns and specific opportunity types — not just "r/marketing is relevant." A useful output names the recurring question theme, the user intent behind it, and the exact move to make (reply now, create this guide first, monitor this topic monthly).
+</Tip>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="GEO content research" icon="robot" href="/skills/geo-content-research">
+    Turn Reddit questions into GEO prompt targets and produce `prompts.csv`.
+  </Card>
+  <Card title="Write SEO/GEO content" icon="pen-nib" href="/skills/write-seo-geo-content">
+    Build the comparison pages, guides, and explainers Reddit users are asking for.
+  </Card>
+</CardGroup>

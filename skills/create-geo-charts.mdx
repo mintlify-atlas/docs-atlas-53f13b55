@@ -1,0 +1,211 @@
+---
+title: "Create GEO-optimized data charts and visualizations"
+description: "Produces SVG charts with text summaries, HTML data tables, and Dataset JSON-LD so AI engines can parse, quote, and cite the underlying data."
+---
+
+The `create-geo-charts` skill creates data visualizations optimized for both human readers and AI engine citation. The core insight driving every decision in this skill: **AI engines cite text, not pixels.** Every chart it produces pairs a visual (SVG, Mermaid, or Chart.js) with a complete text representation — a key finding summary, a semantic HTML data table, and a Dataset JSON-LD schema. The chart is for humans; the text layer is for AI.
+
+## What it produces
+
+For every chart, the skill delivers all of the following together:
+
+| Output | Purpose |
+|---|---|
+| Inline SVG (preferred) | Human-readable chart; text in `<text>` elements stays crawlable |
+| Key finding summary (40–60 words) | The primary citable unit — placed above the chart |
+| Source and methodology line | Non-negotiable credibility signal placed below the chart |
+| "What this means" paragraph | 2–3 sentence interpretation — AI models quote interpretations, not just data |
+| HTML data table (full semantic markup) | Direct AI and crawler extraction; values must exactly match the chart |
+| Downloadable CSV | `<a href="data.csv" download>` linked from the data table |
+| Dataset JSON-LD schema | Structured data for AI and Google Dataset Search |
+
+## Usage
+
+Invoke from the chat interface, either standalone or from within `write-seo-geo-content`:
+
+```
+/create-geo-charts
+```
+
+The skill asks for the data source, chart purpose, target audience, and comparison context. If the user provides raw data, it uses it directly. If a synthesis is needed, it gathers data from verifiable sources before charting — every number must have a source URL.
+
+## Chart types and GEO value
+
+| Data pattern | Chart type | GEO value |
+|---|---|---|
+| X vs Y vs Z performance | Comparison bar chart | Very High — answers "which is better" queries |
+| Rankings or scores | Horizontal bar chart | Very High — AI extracts ranked lists |
+| Changes over time | Line chart | High — answers "how has X changed" queries |
+| Part-of-whole | Donut/pie chart (max 5 segments) | Medium — keep segments few and labeled |
+| Multi-criteria evaluation | Radar/spider chart | Medium — pair with a comparison table |
+| Process or decision | Flowchart / decision tree | High — answers "how does X work" queries |
+| Feature comparison | Matrix/checklist table | Very High — direct extraction by AI |
+
+Comparison charts, benchmark tables, and step-by-step flow diagrams are the most-cited visual formats by AI engines. Prefer these when the data supports it.
+
+## The 9-step workflow
+
+<Steps>
+  <Step title="Understand the data">
+    Gather four things from the user: the data source (raw data, research findings, or a synthesis request), the chart's purpose (what point should it make?), the target audience (who sees this and where does it live?), and the comparison context (benchmarking, trending, distribution, or process illustration?).
+
+    Never chart unverified numbers. Every value must have a source URL before the skill produces the visualization.
+  </Step>
+  <Step title="Choose the right chart type">
+    Match the chart type to the data pattern and GEO intent using the table above. Prefer chart types with Very High GEO value. When a radar/spider chart is the right choice, always pair it with a companion comparison table — AI engines extract tables directly.
+  </Step>
+  <Step title="Create the chart">
+    **Inline SVG is preferred** — text stays crawlable, scales perfectly, and is accessible. All labels must use `<text>` elements, never baked into paths. The root `<svg>` needs `role="img"` and `aria-labelledby` pointing to internal `<title>` and `<desc>` elements. Inline the SVG directly in HTML (not via `<img src>`) so search crawlers see the text content.
+
+    Mermaid diagrams are acceptable for flowcharts and decision trees in Markdown-based sites. Chart.js or D3 config is acceptable for interactive charts — provide the config code.
+  </Step>
+  <Step title="Write the text layer">
+    Every chart must have four text companions placed around it:
+
+    1. **Takeaway heading** (H2 or H3) — states the key finding as a complete sentence: `"Authoritative Quotations Lift AI Visibility by 41%"` not `"Chart 1: Performance Results"`
+    2. **Key finding summary** (40–60 words) — placed above the chart; the primary citable unit (see template below)
+    3. **Source and methodology line** — placed below the chart in small text
+    4. **"What this means" paragraph** — 2–3 sentences of actionable interpretation placed after the chart
+
+    This text layer is what AI engines actually cite. A chart without it is invisible to LLMs.
+  </Step>
+  <Step title="Create the HTML data table">
+    Every chart must have a companion HTML data table using full semantic markup. Values in the table must exactly match the chart. Include units in column headers, not in individual cells. The table must be in the DOM (not lazy-loaded via JavaScript) so crawlers see it.
+
+    ```html
+    <figure>
+      <figcaption>Table: [Descriptive title matching the chart]</figcaption>
+      <table>
+        <caption>[Same descriptive title]</caption>
+        <thead>
+          <tr>
+            <th scope="col">[Dimension]</th>
+            <th scope="col">[Metric 1]</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">[Row label]</th>
+            <td>[Value]</td>
+          </tr>
+        </tbody>
+      </table>
+    </figure>
+    ```
+  </Step>
+  <Step title="Add structured data">
+    Add a Dataset JSON-LD schema for every chart. See the full schema example in the "Dataset JSON-LD" section below.
+  </Step>
+  <Step title="Image optimization">
+    Alt text must describe the **conclusion**, not the visual form. Use a descriptive hyphenated filename. Compress SVGs through SVGO; use WebP at quality 80 for raster exports. Add `loading="lazy"` to charts below the fold; never lazy-load the first visible chart. Wrap every chart in `<figure>` + `<figcaption>`.
+  </Step>
+  <Step title="Internal linking">
+    Link to the chart page from related blog posts and guides using anchor text that contains the key finding. Link from the chart page to deeper analysis pages. If the chart lives on a standalone data page, include it in the site's `llms.txt`.
+  </Step>
+  <Step title="Visual QA">
+    After generating any chart, save it as an HTML file and open it in a browser before delivering. SVG coordinate math is error-prone — elements frequently overflow, overlap, or clip. Check for: text overflow past the viewBox edge, text clipping at the top or bottom, overlapping labels on horizontal bars, misaligned data labels, axis scale mismatches, and text that is too small or low-contrast at rendered size.
+
+    Fix any issues immediately, then re-open and verify the fix. Do not deliver a chart you have not visually confirmed.
+  </Step>
+</Steps>
+
+## Design standards
+
+The skill follows consulting-grade visual standards used by McKinsey, BCG, Deloitte Insights, and Pew Research Center. The core principle: **restrained elegance — every element earns its place or gets removed.**
+
+**Color palette — maximum 3 colors per chart:**
+
+| Role | Color | Hex |
+|---|---|---|
+| Primary accent (key insight, #1 data point) | Blue | `#2563EB` |
+| Secondary data (supporting data) | Slate gray | `#64748B` |
+| Tertiary data (background/context) | Light gray | `#CBD5E1` |
+| Negative/risk values | Red | `#DC2626` |
+| Positive/growth indicators | Green | `#059669` |
+| Background | White | `#FFFFFF` |
+| Gridlines (when necessary) | Near-invisible | `#F1F5F9` |
+
+When the user has brand colors, the brand's primary color replaces `#2563EB` as the accent. All other bars and lines stay gray.
+
+**Action titles — state the insight, not the topic:**
+
+The chart title is a complete sentence stating the takeaway. This is the single most important pattern from McKinsey and BCG.
+
+```
+BAD:  "Revenue by Region"
+BAD:  "GEO Strategy Comparison"
+GOOD: "Authoritative Quotations Lift AI Visibility by 41%"
+GOOD: "Content Updated Within 3 Months Earns 54% More Citations"
+```
+
+**Additional standards:**
+- Place data labels directly on or beside each bar/point — no legend needed
+- Remove gridlines entirely when data labels are on bars; use faint `#F1F5F9` gridlines only when data labels would clutter (>10 data points)
+- No vertical gridlines on bar charts
+- No 3D effects, gradients, shadows, or rounded bar caps
+- No pie charts with more than 5 segments (use horizontal bar instead)
+- No radar/spider charts without a companion comparison table
+- No dark or colored chart backgrounds
+- Charts should be 640–800px wide maximum
+
+## Text layer requirements
+
+The key finding summary (Step 4B) is the most important citable unit the skill produces. It follows this template:
+
+```
+Key finding: [Subject] [verb] [object] by [specific number]. Based on [methodology]
+of [sample size] [items] between [date range], [subject] outperformed [comparison]
+across [N] of [M] tested criteria. [One sentence of practical implication].
+```
+
+Requirements:
+- No pronouns — name the subject explicitly every time
+- At least 1 specific number
+- Stands alone without any surrounding context
+- Under 60 words
+
+## Dataset JSON-LD
+
+Add this structured data for every chart, inline in a `<script type="application/ld+json">` block:
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": "[Chart title — the takeaway heading]",
+  "description": "[Key finding summary from Step 4B]",
+  "temporalCoverage": "[Start date]/[End date]",
+  "variableMeasured": [
+    {
+      "@type": "PropertyValue",
+      "name": "[Metric name]",
+      "unitText": "[Unit]"
+    }
+  ],
+  "creator": {
+    "@type": "Organization",
+    "name": "[Brand/Author name]"
+  },
+  "datePublished": "[ISO date]",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "image": {
+    "@type": "ImageObject",
+    "contentUrl": "[Chart image URL or inline reference]",
+    "caption": "[Key finding summary]",
+    "encodingFormat": "image/svg+xml"
+  },
+  "distribution": {
+    "@type": "DataDownload",
+    "encodingFormat": "text/csv",
+    "contentUrl": "[CSV download URL]"
+  }
+}
+```
+
+<Warning>
+Visual QA is mandatory — open every chart in a browser before delivering. SVG coordinate math is error-prone: elements frequently overflow the viewBox edge, labels clip at chart boundaries, and horizontal bar labels overlap when there are many rows. Keep all elements at least 20px inside the right edge of the viewBox. Set the viewBox height to accommodate all content with 20px padding on all sides, and adjust height rather than cramming elements.
+</Warning>
+
+<Tip>
+Alt text should describe the conclusion, not the visual form. Write `"GEO-optimized pages earn 41% more AI citations than unoptimized pages (KDD 2024, N=10K queries)"` — not `"bar chart showing data"`. AI models and screen readers both need the takeaway, not a description of bars and axes. Keep alt text under 125 characters when possible; use the companion data table as the extended description.
+</Tip>

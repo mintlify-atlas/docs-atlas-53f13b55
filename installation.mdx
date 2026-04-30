@@ -1,0 +1,107 @@
+---
+title: "Install GTM Engineer Skills into Claude Code or Codex"
+description: "Clone the repo once and symlink any skill folder into Claude Code (~/.claude/skills/) or Codex (~/.codex/skills/) to make it available by name."
+---
+
+Installing a skill means cloning this repository to your machine and symlinking the skill folders you want into the directory your agent reads at startup. Claude Code loads skills from `~/.claude/skills/` (global) or `.claude/skills/` inside a project (local). Codex loads skills from `~/.codex/skills/`. You don't need to install every skill — symlink only the ones relevant to your current work.
+
+## Install skills
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the repo to a stable location on your machine. The symlinks you create in later steps will point here, so don't move the folder after cloning.
+
+    ```bash
+    git clone https://github.com/onvoyage-ai/gtm-engineer-skills.git
+    cd gtm-engineer-skills
+    ```
+  </Step>
+
+  <Step title="Symlink skills into your agent">
+    Create the skills directory for your agent and symlink whichever skill folders you want to use.
+
+    <Tabs>
+      <Tab title="Claude Code">
+        ```bash
+        mkdir -p ~/.claude/skills
+        ln -s "$PWD/research-brand" ~/.claude/skills/research-brand
+        ln -s "$PWD/reddit-opportunity-research" ~/.claude/skills/reddit-opportunity-research
+        ```
+
+        Repeat the `ln -s` command for each additional skill you want to install. The skill name in `~/.claude/skills/` is the name you'll use when invoking it.
+      </Tab>
+      <Tab title="Codex">
+        ```bash
+        mkdir -p ~/.codex/skills
+        ln -s "$PWD/research-brand" ~/.codex/skills/research-brand
+        ln -s "$PWD/reddit-opportunity-research" ~/.codex/skills/reddit-opportunity-research
+        ```
+
+        If you use a custom Codex home, replace `~/.codex` with `$CODEX_HOME`.
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Verify the installation">
+    List the skills directory to confirm the symlinks were created correctly.
+
+    <Tabs>
+      <Tab title="Claude Code">
+        ```bash
+        ls -la ~/.claude/skills/
+        ```
+      </Tab>
+      <Tab title="Codex">
+        ```bash
+        ls -la ~/.codex/skills/
+        ```
+      </Tab>
+    </Tabs>
+
+    Each entry should show a symlink pointing back to the cloned repo folder.
+  </Step>
+</Steps>
+
+<Tip>
+  Install only the skills you need for active work. Adding every skill at once increases the context loaded at agent startup. Start with `research-brand` and add others as you move through the workflow.
+</Tip>
+
+## Project-local installation (Claude Code)
+
+For Claude Code, you can also install skills at the project level by placing them in a `.claude/skills/` directory inside your project root. This is useful when different projects need different skills, or when you want to keep skills version-controlled alongside the project.
+
+```bash
+# From inside your project root
+mkdir -p .claude/skills
+ln -s /path/to/gtm-engineer-skills/research-brand .claude/skills/research-brand
+```
+
+Project-local skills take precedence over global skills when both are installed with the same name.
+
+## The workspace directory
+
+<Note>
+  The `workspace/` directory in the repo root is gitignored. Customer work goes in `workspace/<customer-name>/`. Store per-customer artifacts here — `brand_dna.md`, `keyword_research.md`, `geo_prompt_targets.md` — so they're isolated from each other and not accidentally committed.
+</Note>
+
+## Invoking a skill
+
+Once installed, invoke a skill by name in your agent session. You can use a slash command or a natural-language instruction:
+
+<CodeGroup>
+
+```bash Slash command (Claude Code)
+/research-brand
+```
+
+```bash Natural language
+Use the research-brand skill to research this company: https://example.com
+```
+
+```bash Natural language (AEO)
+Use the improve-aeo-geo skill to audit this codebase and fix AI discoverability issues
+```
+
+</CodeGroup>
+
+The agent reads the skill's `SKILL.md` prompt and follows its instructions for that workflow. Each skill produces named output files (for example, `brand_dna.md`) that you pass as input to the next skill in the pipeline.

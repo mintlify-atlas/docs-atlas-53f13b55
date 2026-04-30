@@ -1,0 +1,111 @@
+---
+title: "GEO research: the science behind the recommendations"
+description: "Primary sources and key findings behind every GTM Engineer Skills optimization recommendation — peer-reviewed research and large-scale industry studies only."
+---
+
+Every optimization recommendation in GTM Engineer Skills is backed by peer-reviewed academic research or large-scale industry studies. The numbers cited in the improve-aeo-geo skill — +41% visibility from quotations, 5.1 citations for long-form content, 25.7% fresher AI citations — are not estimates or intuition. They come from studies analyzing millions of pages, queries, and AI answers. This page documents the primary sources and summarizes the key findings by category.
+
+## Primary research sources
+
+<CardGroup cols={2}>
+  <Card title="GEO Paper — KDD 2024" icon="graduation-cap" href="https://arxiv.org/abs/2311.09735">
+    Aggarwal et al. — Princeton, Georgia Tech, IIT Delhi, Allen AI. Peer-reviewed study of 10,000 queries measuring the effect of specific content strategies on AI engine visibility. The source for the +41%, +33%, and +28% visibility findings.
+  </Card>
+  <Card title="SE Ranking — Nov 2025" icon="chart-bar" href="https://seranking.com/blog/how-to-optimize-for-ai-mode/">
+    Analysis of 2.3 million pages across 295,000 domains. The largest dataset on content length, heading density, FAQ sections, and freshness as they relate to AI citation counts.
+  </Card>
+  <Card title="Growth Memo — Feb 2026" icon="newspaper" href="https://www.growth-memo.com/p/the-science-of-how-ai-pays-attention">
+    Kevin Indig. Analysis of 1.2 million AI answers covering 18,000 citations. Source for the finding that 44.2% of ChatGPT citations come from the first 30% of page content.
+  </Card>
+  <Card title="Ahrefs — 2025" icon="magnifying-glass" href="https://ahrefs.com/blog/do-ai-assistants-prefer-to-cite-fresh-content/">
+    17 million citations analyzed across 7 AI platforms. Source for the finding that AI assistants cite content 25.7% fresher than traditional organic search results.
+  </Card>
+  <Card title="Conductor — Nov 2025" icon="signal" href="https://www.conductor.com/academy/aeo-geo-benchmarks-report/">
+    13,700 domains analyzed across 3.3 billion sessions. Source for the finding that ChatGPT drives 87.4% of AI referral traffic — the dominant AI channel by a wide margin.
+  </Card>
+  <Card title="AirOps — 2025" icon="sitemap" href="https://www.airops.com/report/structuring-content-for-llms">
+    Study of structural clarity and heading hierarchy. Source for the finding that content with clear H2/H3 hierarchy is 2.8x more likely to earn AI citations.
+  </Card>
+</CardGroup>
+
+## Key findings by category
+
+<AccordionGroup>
+  <Accordion title="Content strategies that increase AI visibility">
+    The GEO paper (Aggarwal et al., KDD 2024) tested specific content modifications against 10,000 queries and measured the effect on AI engine visibility scores. Three strategies stood out:
+
+    - **Quotations from authoritative sources: +41% visibility** — The single most effective GEO strategy. Including direct quotes from experts, studies, or official sources produced the largest average visibility gain across all tested modifications.
+    - **Statistics and data points: +33% visibility** — Specific numbers, percentages, dates, and measurements were the second most effective strategy.
+    - **Citing sources with in-text references: +28% visibility** — Naming sources inline and linking to primary studies was the third most effective strategy.
+
+    Critically, lower-ranked pages benefit disproportionately. Sites originally ranked 4th–5th saw up to **+115% visibility improvement** from citing sources — a larger gain than sites already ranking in the top 3.
+  </Accordion>
+  <Accordion title="Content length and depth">
+    From SE Ranking's analysis of 2.3 million pages (Nov 2025):
+
+    - Articles of **2,900+ words average 5.1 AI citations** vs. 3.2 citations for articles under 800 words
+    - The relationship is not purely about word count — it reflects that longer content tends to cover a topic more thoroughly, include more evidence, and provide more quotable passages
+
+    Implication: key product and documentation pages should aim for substantive depth, not thin coverage. Depth signals to AI agents that the content is authoritative.
+  </Accordion>
+  <Accordion title="Content structure and heading density">
+    From SE Ranking (2025) and AirOps (2025):
+
+    - **44.2% of ChatGPT citations come from the first 30% of page content** (Kevin Indig, Growth Memo, 2026 — 1.2M AI answers). The opening sections of a page are disproportionately important. Leading with the direct answer rather than context or preamble is not optional.
+    - **120–180 words between headings = 70% more ChatGPT citations** than shorter sections (SE Ranking, 2025). Sections that are too short or too long both underperform. The optimal density gives AI agents a well-scoped, self-contained block of information.
+    - **H2/H3 hierarchy = 2.8x more likely to earn citations** (AirOps, 2025). Consistent, semantic heading structure is a strong signal of content quality.
+  </Accordion>
+  <Accordion title="Freshness signals">
+    From SE Ranking (2025) and Ahrefs (2025):
+
+    - **Content updated within 3 months averages 6 citations vs. 3.9 for content 2+ years old** — a 54% difference driven by recency alone (SE Ranking, 2025 — 2.3M pages)
+    - **AI assistants cite content 25.7% fresher than traditional organic search results** — meaning AI engines have a stronger recency preference than Google's ranking algorithm (Ahrefs, 2025 — 17M citations across 7 platforms)
+    - **85% of AI Overview citations come from content published in the last 2 years** (Seer Interactive, 2025)
+
+    Implication: maintaining visible `article:published_time` and `article:modified_time` meta tags, and publishing regular updates or a changelog, is a concrete citation signal — not just good practice.
+  </Accordion>
+  <Accordion title="FAQ sections">
+    From SE Ranking's 2.3M page dataset (Nov 2025):
+
+    - **Pages with FAQ sections average 4.9 AI citations vs. 4.4 without** — an 11% lift from adding a FAQ section
+    - The FAQ *content* matters more than FAQ schema markup — the structured text is what gets cited
+    - Adding FAQPage JSON-LD schema alongside the HTML FAQ section provides both the citation signal and the structured data signal
+  </Accordion>
+  <Accordion title="AI referral traffic distribution">
+    From Conductor's analysis of 13,700 domains and 3.3 billion sessions (Nov 2025):
+
+    - **ChatGPT drives 87.4% of AI referral traffic** — it is the dominant AI discovery channel by a very wide margin
+    - Perplexity, Claude, and other AI platforms account for the remaining 12.6% combined
+    - Implication: optimizing for how ChatGPT cites and surfaces content is not a niche concern — it is the core of AEO strategy in 2025–2026
+  </Accordion>
+</AccordionGroup>
+
+## Full research reference table
+
+| Claim | Source |
+|---|---|
+| Quotations = +41% visibility; Statistics = +33%; Cite Sources = +28% | Aggarwal et al., "GEO: Generative Engine Optimization," KDD 2024 ([arXiv](https://arxiv.org/abs/2311.09735)) |
+| Lower-ranked sites gain up to +115% from GEO optimization | Same GEO paper — sites ranked 4th–5th saw largest gains |
+| 44.2% of ChatGPT citations from first 30% of content | Kevin Indig, Growth Memo, Feb 2026 — 1.2M AI answers, 18K citations |
+| Articles 2,900+ words = 5.1 citations vs. 3.2 for under 800 words | SE Ranking, Nov 2025 — 2.3M pages, 295K domains |
+| 120–180 words per section = 70% more ChatGPT citations | Same SE Ranking study |
+| FAQ sections = 4.9 citations vs. 4.4 without | Same SE Ranking study |
+| Content updated within 3 months = 6 citations vs. 3.9 for 2+ year old | Same SE Ranking study |
+| AI cites content 25.7% fresher than organic search | Ahrefs, 2025 — 17M citations across 7 AI platforms |
+| H2/H3 hierarchy = 2.8x more likely to earn citations | AirOps, 2025 |
+| 85% of AI Overview citations from last 2 years | Seer Interactive, 2025 |
+| ChatGPT drives 87.4% of AI referral traffic | Conductor, Nov 2025 — 13.7K domains, 3.3B sessions |
+
+## What these findings mean for your site
+
+Three findings from the research have the most immediate, actionable implications:
+
+**1. Answer first, always.** Because 44.2% of ChatGPT citations come from the first 30% of page content (Growth Memo, 2026), restructuring existing content to lead with the direct answer — before context, before company history, before caveats — has a higher expected ROI than any other single edit. This applies to every page, not just blog posts.
+
+**2. Cite sources inline, especially if you don't rank #1.** The +115% visibility gain for lower-ranked pages from adding source citations (GEO paper, KDD 2024) means that smaller or newer sites have a larger opportunity than established players. Source citations are both a content quality signal and a credibility signal that AI engines respond to directly.
+
+**3. Update content regularly and make it visible.** AI assistants cite content 25.7% fresher than traditional search (Ahrefs, 2025). Adding `article:modified_time` meta tags and a visible "Last updated" date is a low-effort change that directly influences how often AI engines consider your content current enough to cite.
+
+<Info>
+  Lower-ranked sites benefit the most — sites originally ranked 4th–5th saw up to +115% visibility improvement from citing sources (GEO paper, KDD 2024). AEO optimization is a leveling force, not just an incremental gain for already-dominant sites.
+</Info>

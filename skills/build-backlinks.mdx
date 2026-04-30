@@ -1,0 +1,134 @@
+---
+title: 'Find and build backlinks for AI and search visibility'
+description: 'Finds free backlink opportunities on Hacker News, Quora, GitHub, and directories. Outputs a prioritized plan with draft responses ready to post.'
+---
+
+This skill finds free, high-impact opportunities to get a brand mentioned and linked across the web — not mass email outreach or link farms, but showing up where AI engines train and retrieve from. The output is a ready-to-execute action plan: specific URLs, scored and prioritized, with draft responses written for each opportunity.
+
+## Why this matters for GEO
+
+AI engines (ChatGPT, Claude, Perplexity, Gemini) cite brands that appear across diverse, authoritative sources. A single mention on a high-traffic Hacker News thread or a well-trafficked Quora answer can trigger AI citation. Unlike traditional SEO backlinking, GEO backlinks are about presence in the sources AI engines index and quote from — not volume, but authority and relevance.
+
+## What it produces
+
+A `backlink_plan.md` file organized by time horizon:
+
+- **Quick Wins** — high impact, low effort (do this week)
+- **High Value** — high impact, medium effort (do this month)
+- **Long Play** — high impact, high effort (plan for later)
+- **Recurring actions** — weekly and monthly cadence to maintain presence
+
+Every item includes a direct URL, a one-line rationale, a time estimate, and a ready-to-post draft.
+
+## High-value sources for AI citation
+
+| Source | Why it matters |
+|---|---|
+| Hacker News | Heavily indexed by AI engines; high domain authority |
+| Quora | Frequently cited in AI-generated answers |
+| Wikipedia | Highest authority; strictest editorial rules |
+| GitHub | Discussions, awesome-lists, and READMEs cited by technical AI tools |
+| Stack Overflow / Stack Exchange | Technical authority for developer-facing brands |
+| Industry forums and communities | Category-specific authority and relevance |
+| Free directories (G2, Capterra, Product Hunt) | Structured brand data AI engines use for comparisons |
+| Dev.to, Medium, Hashnode | Syndication platforms with strong AI indexing |
+
+## Usage
+
+Invoke with `/build-backlinks`. The skill requires `brand_dna.md` (from the research-brand skill) and optionally uses published content URLs and `geo_prompt_targets.md`:
+
+```
+/build-backlinks
+```
+
+If `brand_dna.md` does not exist, the skill will ask you to run `/research-brand` first.
+
+<Note>
+Every opportunity in the output must have a real, clickable URL. No generic advice like "post on Reddit" — the skill finds the actual thread.
+</Note>
+
+## 5-phase process
+
+<Steps>
+  <Step title="Gather context">
+    Read the available input files to understand what the brand does, who the competitors are, what content already exists, and which GEO prompts are being targeted.
+
+    Then ask the user:
+    - Which channels are you already active on? (to skip those)
+    - Any channels to avoid?
+    - What is your time budget? (e.g., 30 min/week, 2 hours/week)
+  </Step>
+  <Step title="Channel research">
+    Search each relevant platform for existing conversations about the brand's category. For each channel, collect: specific URLs, recency, whether competitors are mentioned, whether the brand is already mentioned, and estimated audience size (upvotes, views, followers).
+
+    Search patterns used:
+    - **Hacker News** — `site:news.ycombinator.com "[category]"`, `"Show HN" [category]`, `"Ask HN" [related problem]`
+    - **Quora** — `site:quora.com "best [product type]"`, `"[competitor]" OR "[category]"`, `"how to [problem brand solves]"`
+    - **GitHub** — `site:github.com "awesome-[category]"`, `"[category]" list OR resource OR tools`
+    - **Directories** — `"[category]" directory submit`, `"[competitor]" site:g2.com OR site:capterra.com`
+    - **Wikipedia** — `site:wikipedia.org "[category]"` to find articles where the brand could be mentioned
+  </Step>
+  <Step title="Score and prioritize">
+    Each opportunity is scored on three factors and assigned a priority level.
+
+    | Factor | Weight | Description |
+    |--------|--------|-------------|
+    | GEO Impact | 40% | How likely AI engines are to cite this source |
+    | Effort | 30% | How much time and skill the action requires |
+    | Relevance | 30% | How closely the thread matches the brand's category and target prompts |
+
+    **Priority levels:**
+    - **Quick Win** — high impact, low effort; do this week
+    - **High Value** — high impact, medium effort; do this month
+    - **Long Play** — high impact, high effort; plan for later
+    - **Skip** — low impact or disproportionate effort
+  </Step>
+  <Step title="Draft actionable responses">
+    For every Quick Win and High Value opportunity, write a ready-to-post response or submission. See response rules below.
+
+    For directory and listing submissions, the draft includes: listing copy (title, description, category, tags) and the submission URL with any requirements.
+
+    For Hacker News "Show HN" posts, the draft includes: post title, description, the best content or tool to share, and the optimal posting time (weekday mornings US time).
+
+    For GitHub awesome-list PRs, the draft includes: the PR description and one-line entry, with a link to the list's contribution guidelines.
+  </Step>
+  <Step title="Build the action plan">
+    Compile everything into `workspace/[customer-name]/backlink_plan.md`, organized by Quick Wins, High Value, Long Play, and Recurring Actions. Each entry includes a direct URL, rationale, time estimate, action, and full draft text.
+  </Step>
+</Steps>
+
+## Response rules
+
+<AccordionGroup>
+  <Accordion title="Be genuinely helpful first">
+    Every response must add value even without the brand mention. Answer the question, share an insight, or provide data. The response should be worth reading on its own.
+  </Accordion>
+  <Accordion title="Mention the brand naturally">
+    Do not lead with the brand. Weave it in as one option among several, or as supporting evidence for a point being made. The brand is a recommendation, not the subject of the response.
+  </Accordion>
+  <Accordion title="Match the channel's tone">
+    Hacker News values technical depth and dislikes marketing speak. Quora expects structured, detailed answers. Reddit communities have their own norms. Adjust the writing style to fit each platform.
+  </Accordion>
+  <Accordion title="Disclose affiliation where appropriate">
+    On Hacker News and similar communities where transparency is expected, include a note like "Full disclosure: I work with [brand]." This builds trust and follows community norms.
+  </Accordion>
+  <Accordion title="Never be spammy">
+    If you cannot draft a response that is genuinely helpful, mark the opportunity as "Skip — no natural fit" rather than forcing a mention. Spammy responses damage brand reputation and get removed.
+  </Accordion>
+  <Accordion title="Link to specific content, not the homepage">
+    Every link should point to the specific article, guide, or resource that directly answers the thread's question. The homepage link is rarely the right target.
+  </Accordion>
+</AccordionGroup>
+
+## Recurring actions
+
+The action plan includes a recurring cadence to maintain brand presence over time:
+
+| Cadence | Action | Channel |
+|---------|--------|---------|
+| Weekly | Check for new "Ask HN" / "Show HN" about the category | Hacker News |
+| Weekly | Check for new questions about the category | Quora |
+| Monthly | Search for new category directory listings | Directories |
+| Monthly | Check for new awesome-lists in the category | GitHub |
+
+The skill generates the specific search queries and alert configurations for each cadence item based on the brand's category and competitor landscape.

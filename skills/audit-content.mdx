@@ -1,0 +1,147 @@
+---
+title: "Audit content accuracy and links before publishing"
+description: "Verifies every URL, statistic, and company claim in content before publishing — catches fabricated data, dead links, and brand DNA contradictions."
+---
+
+The `audit-content` skill runs after writing and before publishing. It verifies the truthfulness, accuracy, and link integrity of content by fetching every external URL, confirming that each statistic matches its cited source, and cross-referencing every company claim against `brand_dna.md`. It catches fabricated statistics, dead URLs, misattributed sources, and company claims the writing agent may have invented or inflated. It does not rewrite content — it reports issues with specific suggested fixes so the writer or writing skill can act on them.
+
+## What it produces
+
+An audit report saved as a markdown file alongside the audited content.
+
+| Content | File name |
+|---|---|
+| Single article | `[article-slug]_audit.md` |
+| Batch audit | `content_audit_[date].md` |
+
+The report is saved in the same directory as the content being audited.
+
+## Usage
+
+Invoke from the chat interface:
+
+```
+/audit-content
+```
+
+Provide the path to the article or content folder to audit. If auditing a batch, the skill processes each article sequentially and produces one combined report.
+
+## What gets checked
+
+| Category | What is extracted | Example |
+|---|---|---|
+| **External URLs** | Every hyperlink to an external source | `[PCMA research](https://www.pcma.org/...)` |
+| **Statistics** | Any number, percentage, or data point attributed to a source | "52% of attendees say..." |
+| **Company claims** | Any claim about the company's product, metrics, or capabilities | "8x reply rates", "980M+ profiles", "10,000 trajectories in 3 days" |
+| **Source attributions** | Any named source tied to a claim | "According to McKinsey..." |
+| **Research citations** | Any reference to a paper, study, or report | "Aggarwal et al., KDD 2024" |
+
+## 6-step audit workflow
+
+<Steps>
+  <Step title="Load context">
+    Read the article or articles to audit. Also read `brand_dna.md` if it exists — this is the source of truth for every company-specific claim. If auditing a batch, note the file list and process each article sequentially in one pass.
+  </Step>
+  <Step title="Extract all verifiable claims">
+    Scan the article and extract every claim that can be checked. Categorize each into the five categories above: external URLs, statistics, company claims, source attributions, and research citations. This extraction step produces the complete claim inventory the audit works from.
+  </Step>
+  <Step title="Verify external URLs">
+    For every external URL in the article:
+
+    1. Fetch the URL to check if it resolves (200 OK)
+    2. If it resolves, scan the page content to confirm the cited claim actually appears there
+    3. Record the result:
+       - **PASS** — URL resolves and the cited claim is supported by the page content
+       - **BROKEN** — URL returns 404, 403, 500, or does not resolve
+       - **MISMATCH** — URL resolves but the page does not support the specific claim attributed to it
+       - **UNVERIFIABLE** — URL resolves but content is behind a paywall or login wall
+
+    Check every URL. No exceptions, no sampling. If an article has 15 links, all 15 get checked.
+  </Step>
+  <Step title="Verify statistics and research citations">
+    For every statistic or research citation:
+
+    - If it has a URL, the URL check in Step 3 covers it
+    - If it names a source but has no URL, web search for the specific claim + source name to verify it exists
+    - If no source is attributed at all, flag it as **UNSOURCED**
+
+    Check for common fabrication patterns: round numbers that sound invented ("exactly 47% improvement"), statistics attributed to well-known sources with no findable original, numbers that don't match the original source, and future-dated research that doesn't exist yet.
+  </Step>
+  <Step title="Verify company claims against brand DNA">
+    Cross-reference every company-specific claim against `brand_dna.md`:
+
+    - **Metrics** — Do cited metrics (reply rates, user counts, time savings) match the brand DNA?
+    - **Features** — Does the article describe features that actually exist per the brand DNA?
+    - **Proof points** — Are case study numbers, launch dates, and outcomes consistent?
+    - **Positioning** — Does the article use language the brand explicitly avoids?
+    - **Competitor claims** — Are competitor descriptions accurate and fair?
+
+    Flag any claim that appears in the article but not in the brand DNA, contradicts the brand DNA, exaggerates a number from it, or uses terminology the brand explicitly avoids.
+  </Step>
+  <Step title="Check internal consistency">
+    Within the article itself: does the same statistic appear with different numbers in different sections? Are dates consistent throughout? Do internal links point to URLs that match the content architecture? Flag any contradictions as issues.
+  </Step>
+</Steps>
+
+## Audit report format
+
+The report follows this structure:
+
+```markdown
+# Content Audit Report
+
+> Audited: [date]
+> Articles checked: [count]
+> Brand DNA: [path to brand_dna.md used]
+
+## Summary
+
+| Category           | Total | Pass | Issues |
+|--------------------|-------|------|--------|
+| External URLs      | X     | X    | X      |
+| Statistics         | X     | X    | X      |
+| Company claims     | X     | X    | X      |
+| Source attributions| X     | X    | X      |
+| Research citations | X     | X    | X      |
+
+**Overall: [X issues found across Y claims checked]**
+
+## Issues
+
+### Critical (must fix before publishing)
+
+| # | Article | Claim | Category | Issue | Suggested Fix |
+|---|---------|-------|----------|-------|---------------|
+| 1 | [article] | "[exact claim text]" | BROKEN URL | URL returns 404 | Find updated URL or remove citation |
+
+### Warnings (should fix)
+
+| # | Article | Claim | Category | Issue | Suggested Fix |
+|---|---------|-------|----------|-------|---------------|
+| 1 | [article] | "[exact claim text]" | UNVERIFIABLE | Paywall blocks confirmation | Add note "cited from [source], paywalled" or find alternative |
+
+### Passed
+
+| Article | URLs OK | Stats OK | Company Claims OK | Total Checked |
+|---------|---------|----------|-------------------|---------------|
+| [article] | X/Y | X/Y | X/Y | X |
+```
+
+Suggested fixes are always specific: "replace with [X]" or "remove this citation and use [alternative source]" — never just "fix this."
+
+## Common LLM hallucination patterns to catch
+
+Writing agents frequently produce these types of fabricated or degraded claims. The audit skill is specifically trained to flag them:
+
+- **Round numbers that sound invented** — "exactly 47% improvement", "3x faster in every use case". Real research produces irregular numbers.
+- **Statistics attributed to well-known sources with no findable original** — Claiming McKinsey, Gartner, or HBR said something that doesn't appear in any of their publications is one of the most common LLM hallucination patterns.
+- **Numbers that don't match the original source** — The article cites 52%; the source says 48%. This happens when an LLM paraphrases a statistic instead of quoting it exactly.
+- **Future-dated research that doesn't exist yet** — "According to the 2027 State of Marketing report..." LLMs commonly hallucinate publications dated into the future. Time-bound every check: confirm the report exists for the year cited.
+
+<Warning>
+Never assume a statistic is correct because it sounds plausible or comes from a credible-looking source. Verify every number. A fabricated statistic that makes it to publication is far more damaging to credibility than a cited gap in the article.
+</Warning>
+
+<Note>
+ArXiv papers can be verified directly by their paper ID. The URL pattern is `arxiv.org/abs/YYMM.NNNNN` — fetch the abstract page to confirm the paper exists and that the specific claim attributed to it matches the paper's findings. The GEO paper cited in several pipeline skills is "Aggarwal et al., KDD 2024" — verifiable at `arxiv.org/abs/2311.09735`.
+</Note>

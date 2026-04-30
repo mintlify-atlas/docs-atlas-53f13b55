@@ -1,0 +1,83 @@
+{
+  "projectType": "general",
+  "projectName": "GTM Engineer Skills",
+  "projectDescription": "A collection of 10 agent skills for go-to-market engineering — covering brand research, SEO/GEO keyword discovery, content planning, content writing, AEO/GEO optimization, and frontend implementation, designed to run in Claude Code and Codex.",
+  "theme": "luma",
+  "primaryColor": "#2563EB",
+  "lightColor": null,
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "workflow"
+            ]
+          },
+          {
+            "group": "Research Skills",
+            "pages": [
+              "skills/research-brand",
+              "skills/research-keywords",
+              "skills/reddit-opportunity-research",
+              "skills/geo-content-research"
+            ]
+          },
+          {
+            "group": "Content Skills",
+            "pages": [
+              "skills/geo-content-planning",
+              "skills/write-seo-geo-content",
+              "skills/create-geo-charts",
+              "skills/audit-content"
+            ]
+          },
+          {
+            "group": "Implementation Skills",
+            "pages": [
+              "skills/build-resource-pages",
+              "skills/improve-aeo-geo",
+              "skills/build-backlinks"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/aeo-scoring",
+              "reference/geo-research",
+              "reference/frameworks",
+              "contributing"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "16 foundational AEO checks with pass/fail scoring and code-level fixes",
+    "6 GEO content quality dimensions evaluated by LLM",
+    "Framework-specific implementation patterns for 10+ web frameworks",
+    "CSV-based pipeline artifacts (keywords.csv, prompts.csv, plan.csv) for automation",
+    "Research-first methodology with no fabricated stats — all claims cite primary sources",
+    "End-to-end workflow from brand research through frontend implementation",
+    "Compatible with both Claude Code and OpenAI Codex agent environments"
+  ],
+  "publicApiSurface": [
+    "/research-brand — URL → brand_dna.md",
+    "/research-keywords — Brand DNA → keywords.csv",
+    "/reddit-opportunity-research — Brand DNA → reddit_opportunities.md",
+    "/geo-content-research — Brand DNA → prompts.csv",
+    "/geo-content-planning — keywords.csv + prompts.csv → plan.csv",
+    "/write-seo-geo-content — plan.csv → Markdown articles",
+    "/create-geo-charts — Data → SVG + HTML table + JSON-LD",
+    "/audit-content — Articles + Brand DNA → audit reports",
+    "/build-resource-pages — Markdown → production frontend pages",
+    "/improve-aeo-geo — Codebase → AEO/GEO code fixes",
+    "/build-backlinks — Brand DNA → backlink_plan.md"
+  ]
+}

@@ -1,0 +1,127 @@
+---
+title: "Research AI-engine prompts and produce prompts.csv"
+description: "Discovers the natural-language prompts people ask AI engines about your category, then emits a validated prompts.csv for downstream content planning."
+---
+
+The `geo-content-research` skill surfaces the exact queries people type into AI chatbots about a product category and emits them as a strictly-formatted CSV. GEO prompts are fundamentally different from SEO keywords: SEO targets are 1–3 word terms optimized for Google ranking, while GEO prompts are full natural-language questions — typically 5–15+ words — that people ask ChatGPT, Perplexity, Gemini, and Claude. Finding the queries where the brand *should* be mentioned is the first step to appearing in AI-generated answers.
+
+<Info>
+AI engines have no paid ranking. You cannot buy a ChatGPT recommendation. They evaluate only content quality, data structure, and source authority. The prompts in `prompts.csv` define the exact queries where high-quality, well-structured content can earn citations — there is no shortcut.
+</Info>
+
+## What it produces
+
+The final deliverable is `prompts.csv` — a raw CSV file with exactly 10 columns and a minimum of 20 data rows, formatted for direct consumption by downstream pipeline steps.
+
+| Column | Type | Required | Allowed values |
+|---|---|---|---|
+| `prompt` | string | yes | full natural-language query, 5+ words, unique |
+| `tier` | enum | yes | `buy` \| `solve` \| `learn` |
+| `citability` | enum | yes | `high` \| `medium` \| `low` |
+| `competition` | enum | yes | `none` \| `low` \| `medium` \| `hard` |
+| `priority` | enum | yes | `easy_win` \| `target` \| `skip` |
+| `query_type` | enum | yes | `definition` \| `recommendation` \| `comparison` \| `evaluation` \| `how_to` \| `cost` \| `landscape` \| `use_case` |
+| `cluster` | string | yes | non-empty, snake_case recommended |
+| `target_engines` | string | yes | `\|`-separated subset of `chatgpt`, `perplexity`, `claude`, `gemini`, `ai_overview`; at least 1 |
+| `brand_mention_mechanism` | string | yes | concrete description — no vague phrases like "builds awareness" |
+| `notes` | string | no | free text |
+
+## Usage
+
+Invoke the skill directly. It will ask for product context in Phase 1, then proceed through the research and emission phases.
+
+```text
+/geo-content-research
+```
+
+The skill works best when `brand_dna.md` from `research-brand` is available in the project directory, but it will gather product context interactively if not.
+
+## Three phases
+
+<Steps>
+  <Step title="Product intelligence">
+    The skill asks for the product name and URL, product category, target customer and problem, key differentiators, price point, top 3 competitors, and any existing content. From these inputs it identifies the product category keyword, maps the buyer intent journey from awareness through decision, and notes the authority gap — what credible data or certifications the product has versus what AI engines expect to see before citing a source.
+  </Step>
+  <Step title="AI prompt research">
+    Using web search, the skill discovers prompts across 8 query types (see table below). For each type it runs multiple search patterns — PAA questions, Reddit threads, Quora questions, and autocomplete suggestions — to find the exact natural-language queries real users ask. Reddit mining is required, not optional: AI engines (especially ChatGPT and Perplexity) heavily crawl Reddit, and Reddit language produces the most authentic prompt phrasing. The goal is 60–100 raw prompts before deduplication. Each prompt is scored for citability (how likely AI is to cite external sources when answering) and competition (how many strong sources already answer this well).
+  </Step>
+  <Step title="Emit prompts.csv">
+    The skill scores, prioritizes, and emits the final CSV. The output is raw CSV with no prose, no code fences, and no explanation. The harness captures the output verbatim, saves it as `prompts.csv`, and validates it against the schema. Output is sorted: `buy`/`easy_win` first, then `buy`/`target`, then `solve`/`easy_win`, and so on, with `skip` rows last.
+  </Step>
+</Steps>
+
+## The 8 query types
+
+<AccordionGroup>
+  <Accordion title="Definition prompts">
+    Questions that ask what something is or how it works. Examples: "What is [product/category]?", "How does [technology] work?", "What is the difference between [X] and [Y]?", "[X] vs [Y] — what's the difference?"
+  </Accordion>
+  <Accordion title="Recommendation prompts">
+    Questions asking for the best option. Examples: "What is the best [product] for [use case]?", "Top [products] in [year]", "Which [product] should I choose?", "Best [product] for [audience segment]"
+  </Accordion>
+  <Accordion title="Comparison prompts">
+    Questions comparing specific options head-to-head. Examples: "[Brand A] vs [Brand B] — which is better?", "[Product] vs [alternative approach]", "How does [brand] compare to [competitor]?", "[Product] alternatives"
+  </Accordion>
+  <Accordion title="Evaluation / trust prompts">
+    Questions from buyers assessing credibility. Examples: "Is [product/brand] worth it?", "What are the pros and cons of [product]?", "[Product] problems / issues", "Can I trust [brand]?"
+  </Accordion>
+  <Accordion title="How-to / problem-solving prompts">
+    Questions about accomplishing a task. Examples: "How to [solve problem the product fixes]", "How to choose [product category]", "How to get started with [technology]", "Step-by-step guide to [task]"
+  </Accordion>
+  <Accordion title="Cost / business prompts">
+    Questions about pricing and investment. Examples: "How much does [product] cost?", "[Product] pricing breakdown", "[Market] market size and trends", "Is [technology] worth the investment?"
+  </Accordion>
+  <Accordion title="Landscape / who prompts">
+    Questions about who is building in a space. Examples: "What companies are building [technology]?", "[Category] startups to watch in [year]", "Who are the leaders in [space]?", "[Company] competitors"
+  </Accordion>
+  <Accordion title="Use case / scenario prompts">
+    Questions about applying the technology to a specific situation. Examples: "Can [product] be used for [specific scenario]?", "How is [technology] used in [industry]?", "[Technology] in [vertical] — what's possible?", "Will [technology] replace [existing approach]?"
+  </Accordion>
+</AccordionGroup>
+
+## Business-value tiers
+
+The `tier` column classifies each prompt by where the buyer is in their decision journey:
+
+| Tier | What it signals | Example |
+|---|---|---|
+| `buy` | Buyer is choosing between options — brand can be named directly | "What is the best GEO optimization platform?" |
+| `solve` | Buyer needs to accomplish a task — brand's methodology is the answer | "How do I optimize content for AI citations?" |
+| `learn` | Buyer is building knowledge — brand can be cited as an expert source | "What is generative engine optimization?" |
+
+Target distribution is roughly 20% `buy`, 40% `solve`, 40% `learn`, though the actual mix should reflect what real users ask about the category.
+
+## Priority derivation
+
+Priority is derived from the combination of tier, citability, and competition:
+
+| Condition | Priority |
+|---|---|
+| `buy` or `solve` + `high` citability + `none` or `low` competition | `easy_win` |
+| Any tier + `medium` or `hard` competition + `high` citability | `target` |
+| Any tier + `low` citability | `skip` |
+
+Use judgment — the rules above are guidelines, not a hard formula. Higher-value prompts should target multiple engines; niche or low-priority prompts may target just one.
+
+## Example prompts.csv rows
+
+```text
+prompt,tier,citability,competition,priority,query_type,cluster,target_engines,brand_mention_mechanism,notes
+what is the best geo optimization platform,buy,high,low,easy_win,recommendation,geo_platforms,chatgpt|perplexity|claude|gemini,named in top-5 list alongside profound and otterly,
+how do i optimize content for ai citations,solve,high,medium,target,how_to,content_strategy,chatgpt|perplexity|claude,brand methodology cited as reference approach,
+voyage vs profound which is better,buy,high,none,easy_win,comparison,geo_platforms,chatgpt|perplexity,comparison table authored by brand builds association,
+best ai visibility tracking tools 2026,buy,high,low,easy_win,recommendation,geo_platforms,chatgpt|perplexity|gemini,named alongside otterly and geoptic,
+how to measure llm citation rates,solve,high,low,easy_win,how_to,measurement,chatgpt|perplexity,brand's dashboard cited as measurement solution,
+what is generative engine optimization,learn,medium,hard,skip,definition,geo_fundamentals,chatgpt,brand cited via byline on definition page,
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="GEO content planning" icon="map" href="/skills/geo-content-planning">
+    Turn `prompts.csv` into a prioritized content blueprint — one page per cluster, with page type and URL structure.
+  </Card>
+  <Card title="Write SEO/GEO content" icon="pen-nib" href="/skills/write-seo-geo-content">
+    Generate AI-ready pages with direct answer blocks, comparison tables, structured data, and FAQ schema.
+  </Card>
+</CardGroup>

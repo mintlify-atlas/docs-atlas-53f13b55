@@ -1,0 +1,134 @@
+---
+title: "Plan content architecture with geo-content-planning"
+description: "Reads keywords.csv and prompts.csv, clusters them into pages, and emits plan.csv with page types, slugs, priorities, and required content sections."
+---
+
+The `geo-content-planning` skill is a planning-only step in the GTM Engineer pipeline. It reads existing brand context and research artifacts, then outputs a strictly-formatted `plan.csv` that tells the next pipeline step which pages to build, which keyword and prompt clusters each page targets, and in what order to build them. This skill does not write articles and does not conduct new research — it clusters what already exists into a coherent page architecture.
+
+## What it produces
+
+A single file: `plan.csv` — a strictly-validated content architecture with exactly 11 columns per row.
+
+The harness captures the skill's final output, validates its format, and cross-references every referenced keyword against `keywords.csv` and every referenced prompt against `prompts.csv`. Any row with an unresolvable reference fails validation before the next pipeline step runs.
+
+## Required inputs
+
+The harness injects these three files into the skill's context automatically. They must already exist from prior pipeline steps.
+
+| File | Description |
+|---|---|
+| `brand_dna.md` | Brand positioning, voice, and target audience |
+| `keywords.csv` | SEO keyword targets with columns: `keyword`, `volume`, `kd`, `intent`, `priority`, `cluster`, `is_pillar`, `ai_overview_present`, `source`, `notes` |
+| `prompts.csv` | GEO prompt targets with columns: `prompt`, `tier`, `citability`, `competition`, `priority`, `query_type`, `cluster`, `target_engines`, `brand_mention_mechanism`, `notes` |
+
+## Usage
+
+Invoke from the chat interface:
+
+```
+/geo-content-planning
+```
+
+The skill reads all injected context, clusters it into pages, and emits raw CSV as its entire response. No prose, no code fences — just the CSV the harness expects.
+
+## How it clusters into pages
+
+<Steps>
+  <Step title="Read the inputs">
+    From `brand_dna.md`, extract what the company sells, its target audience, and top differentiators.
+
+    From `keywords.csv`, group keywords by `cluster` and sort by `priority` (`easy_win` → `target` → `content` → `hard`). Focus on `is_pillar=true` rows — they anchor each cluster.
+
+    From `prompts.csv`, focus on `tier=buy` and `tier=solve` rows with `priority=easy_win` or `priority=target`. These are where the brand can realistically earn a mention. De-emphasize `tier=learn` and skip `priority=skip` entirely.
+  </Step>
+  <Step title="Cluster into pages">
+    Do not create one page per prompt. Group closely related prompts and keywords into a single page. A well-formed page covers one main topic, 1–3 primary keywords, 3–6 related GEO prompts, and one clear intent (buy / solve / learn).
+  </Step>
+  <Step title="Choose page types">
+    Assign each page one of the five page type values:
+
+    - `money` — high-intent category or solution page on the product itself
+    - `comparison` — best / vs / alternatives queries
+    - `use_case` — specific audience or scenario
+    - `trust` — pricing, worth-it, objections, FAQ
+    - `definition` — what is X, how X works
+  </Step>
+  <Step title="Assign section and subsection">
+    Map each page to a `section` and, when required, a `subsection`:
+
+    - `product` — core capability or feature pages. Subsection must be empty.
+    - `use_cases` — persona, workflow, or scenario pages. Subsection must be empty.
+    - `resources` — educational, comparative, or demand-capture pages. Subsection is required: `guides`, `comparisons`, `learn`, or `blog`.
+  </Step>
+  <Step title="Pick required sections">
+    Choose from this pipe-separated list: `direct_answer`, `comparison_table`, `who_this_is_for`, `how_it_works`, `use_cases`, `faqs`, `proof`, `objections`. Include only what the search intent actually needs. Every page needs at least one. Most pages benefit from `direct_answer` + `faqs`. Comparison pages need `comparison_table`. Data and money pages need `proof`.
+  </Step>
+  <Step title="Write title, url_slug, and why_it_matters">
+    - `title` — natural language, practical not clever (e.g., `"Best GEO Platforms in 2026: Voyage vs Profound vs Otterly"`)
+    - `url_slug` — path format starting with `/` (e.g., `/resources/compare/best-geo-platforms`)
+    - `why_it_matters` — a concrete business reason, at least 15 characters. Vague phrases like "builds awareness" fail validation.
+  </Step>
+  <Step title="Prioritize pages">
+    - `p1` — high business value with clear product fit. At least one page in the plan must be P1.
+    - `p2` — useful supporting content
+    - `p3` — lower-priority authority content
+
+    The plan must contain at least 5 rows total.
+  </Step>
+  <Step title="Emit plan.csv">
+    The skill's final response is the raw CSV. The first character must be `p` (from the `page_id` header). No prose before or after, no code fences. The harness captures the output and validates it immediately.
+  </Step>
+</Steps>
+
+## plan.csv schema
+
+The CSV must have exactly this header in exactly this order, with exactly 11 fields per row:
+
+```
+page_id,priority,page_type,section,subsection,title,url_slug,target_keywords,target_prompts,required_sections,why_it_matters
+```
+
+| Column | Type | Allowed values / notes |
+|---|---|---|
+| `page_id` | string | Unique snake_case identifier, no spaces |
+| `priority` | enum | `p1`, `p2`, `p3` |
+| `page_type` | enum | `money`, `comparison`, `use_case`, `trust`, `definition` |
+| `section` | enum | `product`, `use_cases`, `resources` |
+| `subsection` | enum or empty | `guides`, `comparisons`, `learn`, `blog` — required when `section=resources`, empty otherwise |
+| `title` | string | Natural-language title; quote if it contains commas |
+| `url_slug` | string | Path starting with `/`; unique across all rows |
+| `target_keywords` | pipe-separated | Values must match entries in `keywords.csv` |
+| `target_prompts` | pipe-separated | Values must match entries in `prompts.csv`, lowercased, no trailing `?` |
+| `required_sections` | pipe-separated | From: `direct_answer`, `comparison_table`, `who_this_is_for`, `how_it_works`, `use_cases`, `faqs`, `proof`, `objections` |
+| `why_it_matters` | string | Concrete business reason, ≥ 15 characters |
+
+## Page types
+
+| Page type | Description |
+|---|---|
+| `money` | High-intent category or solution page anchored to the product. Targets buyers already aware of the solution category. |
+| `comparison` | Best / vs / alternatives queries. Captures users actively evaluating options. |
+| `use_case` | Specific audience segment or workflow scenario. Connects product capabilities to a named role or outcome. |
+| `trust` | Pricing, worth-it, objections, and FAQ pages. Targets late-funnel doubt and conversion blockers. |
+| `definition` | What is X, how X works. Top-of-funnel category education that seeds authority and AI citability. |
+
+## Example plan.csv rows
+
+The following is a complete valid plan.csv with header and 5 rows. This format is what the harness expects as the skill's entire output:
+
+```
+page_id,priority,page_type,section,subsection,title,url_slug,target_keywords,target_prompts,required_sections,why_it_matters
+best_geo_platforms_2026,p1,comparison,resources,comparisons,"Best GEO Platforms in 2026: Voyage vs Profound vs Otterly",/resources/compare/best-geo-platforms,geo tool|geo platform,what is the best geo optimization platform|top generative engine optimization companies,direct_answer|comparison_table|faqs|proof,"Owns the best-query cluster that drives highest-intent buyer traffic"
+how_to_get_cited_in_chatgpt,p1,money,product,,"How to Get Cited in ChatGPT Responses",/product/ai-citation-optimization,geo tool|content brief,how to get cited in chatgpt responses|how to write content that ai will cite,direct_answer|how_it_works|faqs|proof,"Product page anchoring the core solve-tier search intent"
+what_is_geo,p2,definition,resources,learn,"What Is Generative Engine Optimization (GEO)?",/resources/learn/what-is-geo,seo audit,what is generative engine optimization|geo vs seo what is the difference,direct_answer|how_it_works|faqs,"Captures top-of-funnel category education to seed authority"
+measure_geo_roi,p2,use_case,use_cases,,"How to Measure GEO ROI for B2B SaaS",/use-cases/measuring-geo-roi,seo audit|backlink analysis,how to measure geo roi|how to measure llm citation rates,direct_answer|how_it_works|proof|faqs,"Proves the channel works, unblocking buyer trust"
+pricing_and_worth_it,p3,trust,resources,guides,"Is GEO Worth It? A Data-Backed Answer",/resources/guides/is-geo-worth-it,seo audit,is geo worth investing in for b2b saas|how much does geo optimization cost,direct_answer|proof|objections|faqs,"Captures late-funnel objection traffic close to conversion"
+```
+
+<Warning>
+Every keyword listed in `target_keywords` must exist verbatim in `keywords.csv`. Every prompt listed in `target_prompts` must exist verbatim in `prompts.csv` (lowercased, no trailing `?`). The harness enforces both constraints — rows with mismatched references fail validation and block the next pipeline step.
+</Warning>
+
+<Note>
+Good page clustering matches intent, not surface keywords. "best GEO tool", "GEO platform alternatives", and "GEO software comparison" all belong on one `comparison` page — not three separate pages. Similarly, "how to build a GEO workflow" and "GEO content process" belong on one `use_case` or `money` page.
+</Note>

@@ -1,0 +1,121 @@
+---
+title: "AEO scoring: foundational checks and GEO dimensions"
+description: "How the AEO audit score is calculated: 16 deterministic foundational checks plus 6 LLM-evaluated content dimensions, combined into a letter grade."
+---
+
+The AEO audit score is built from two equal halves. The first half is a deterministic pass/fail audit of 16 foundational technical and content checks — things a machine can verify without judgment. The second half is an LLM-evaluated assessment of six content quality dimensions that measure how well your content actually reads to an AI agent. Together they produce a final score out of 100 and a letter grade.
+
+## Scoring overview
+
+The model is designed so that getting the technical fundamentals right is necessary but not sufficient. A site can pass all 16 foundational checks and still score 50 if the content gives AI engines nothing worth citing.
+
+**Foundational Score (50%)** — 16 deterministic checks, evaluated pass/fail per page. A check passes site-wide only when 80%+ of pages pass it. The foundational half contributes up to 50 points to the final score.
+
+**Intelligence Score (50%)** — 6 dimensions rated 0–5 by an LLM evaluating actual content quality. The intelligence half contributes up to 50 points to the final score.
+
+**Final Score** = 50% Foundational + 50% Intelligence
+
+| Grade | Score Range |
+|-------|-------------|
+| A+    | 95–100      |
+| A     | 90–94       |
+| B+    | 80–84       |
+| F     | Below 40    |
+
+Grades between B+ and F follow standard letter grade intervals. **Target: 80+ (B+ or higher).** Validate at [aeo-audit.sh](https://aeo-audit.sh).
+
+## The 16 foundational checks
+
+These checks are deterministic — pass or fail, no interpretation required. Point values reflect relative importance to AI discoverability.
+
+| Check | Points | Pass Criteria |
+|---|---|---|
+| AI bot access (robots.txt) | 12 | 9 AI crawlers not blocked |
+| Text depth | 12 | 250+ words per page |
+| Page title | 10 | 10+ characters |
+| Meta description | 10 | 50+ characters |
+| Internal linking | 10 | 5+ internal links per page |
+| Indexability | 10 | No `noindex` on public pages |
+| llms.txt | 10 | Valid file at `/.well-known/llms.txt` |
+| JSON-LD structured data | 8 | At least 1 JSON-LD block per page |
+| Schema types | 8 | Recognized `@type` values |
+| Canonical URL | 8 | `rel="canonical"` present |
+| Single H1 | 8 | Exactly 1 `<h1>` per page |
+| Open Graph | 8 | `og:title` + `og:description` |
+| Image alt text | 8 | 80%+ images have `alt` |
+| RSS feed | 8 | Discoverable RSS/Atom feed |
+| Heading hierarchy | 6 | H1 → H2 → H3, no skips |
+| AI meta tags | 6 | No `nosnippet`/`noai`/`noimageai` |
+
+The 16 checks total 134 raw points. The foundational score is normalized to a 0–50 contribution to the final score.
+
+## The 6 GEO intelligence dimensions
+
+Each dimension is rated 0–5 by an LLM evaluating your actual page content. Together they account for half of your final score.
+
+| Dimension | What It Measures |
+|---|---|
+| Answer Readiness | Direct answers in opening paragraphs |
+| Quotability | Self-contained, extractable passages |
+| Evidence Density | Statistics, sources, citations inline |
+| Content Depth | Substantive, multi-faceted coverage |
+| Freshness | Publication dates, update signals |
+| Structural Clarity | Semantic HTML, clean heading outline |
+
+## Fix priority order
+
+Apply fixes in this order. Blockers must be resolved first — there is no point optimizing content if AI crawlers can't access the site.
+
+**Priority 1 — Blockers** (fix these before anything else):
+- **AI Bot Access** — Remove any `Disallow` rules for the 9 AI crawlers from robots.txt
+- **AI Meta Tags** — Remove `nosnippet`, `noai`, `noimageai` from robots meta tags and `X-Robots-Tag` headers on public pages
+- **Indexability** — Remove `<meta name="robots" content="noindex">` from public-facing pages
+
+**Priority 2 — High-Impact Structure**:
+- **JSON-LD** — Add at least one `<script type="application/ld+json">` block to every page with a recognized `@type`
+- **Titles** — Ensure every `<title>` is 10+ characters, unique per page, and follows the `[Page Topic] | [Brand]` format
+- **Meta Descriptions** — Add unique `<meta name="description">` with 50+ characters (ideally 120–160) to every page
+- **Text Depth** — Ensure every page has 250+ words of body content (server-rendered, not client-side JS)
+- **llms.txt** — Create `/.well-known/llms.txt` with a heading, links, and 100+ characters
+
+**Priority 3 — Content Quality**:
+- **Headings** — Enforce H1 → H2 → H3 hierarchy with exactly one H1 per page; aim for 120–180 words per section
+- **Internal Links** — Add 5+ internal links per page using descriptive anchor text
+- **Canonical** — Add `<link rel="canonical" href="...">` with an absolute URL to every page
+- **Open Graph** — Add `og:title`, `og:description`, `og:image`, `og:url`, and `og:type`
+- **Images** — Add `alt` attributes to 80%+ of images; describe the conclusion, not the visual form
+- **RSS** — Publish an RSS/Atom feed and add the `<link rel="alternate">` discovery tag to the `<head>`
+
+**Priority 4 — GEO Content**:
+- **Quotations** — Add direct quotes from experts, studies, or official sources (+41% AI visibility)
+- **Statistics** — Include specific numbers, percentages, and measurements every 150–200 words (+33% AI visibility)
+- **Source Citations** — Name sources inline with links to primary studies (+28% AI visibility)
+- **Answer-First** — Lead every section with a direct answer before supporting detail (44.2% of ChatGPT citations come from the first 30% of content)
+- **FAQs** — Add FAQ sections with FAQPage JSON-LD schema to key pages (4.9 citations vs. 4.4 without)
+- **Freshness** — Add `article:published_time` and `article:modified_time` meta tags; show "Last updated" visibly
+
+## Verification checklist
+
+After making changes, confirm each item before re-running the audit:
+
+- [ ] robots.txt allows all 9 AI bots
+- [ ] No `noindex`, `nosnippet`, `noai` on public pages
+- [ ] Every page has: title (10+ chars), meta description (50+ chars), canonical URL
+- [ ] Every page has: exactly 1 H1, proper heading hierarchy (H1 → H2 → H3)
+- [ ] Every page has: JSON-LD with recognized `@type`
+- [ ] Every page has: `og:title` + `og:description`
+- [ ] Every page has: 250+ words of body content
+- [ ] Every page has: 5+ internal links
+- [ ] 80%+ images have alt text
+- [ ] `/.well-known/llms.txt` exists and is valid
+- [ ] RSS/Atom feed exists and is discoverable via `<link>` tag
+- [ ] `sitemap.xml` exists with `<lastmod>` dates
+- [ ] Publication/modification dates on content pages (meta + visible)
+- [ ] Content leads with direct answers, not preamble
+- [ ] FAQ sections on key pages with FAQPage schema
+- [ ] Statistics and named sources cited inline
+- [ ] Authoritative quotations included where relevant
+
+<Tip>
+  Check your baseline score at [aeo-audit.sh](https://aeo-audit.sh) before running `improve-aeo-geo`, then re-run after making changes to measure improvement.
+</Tip>

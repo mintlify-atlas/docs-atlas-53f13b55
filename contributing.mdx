@@ -1,0 +1,100 @@
+---
+title: "Contribute skills, research, and examples to the repo"
+description: "Add framework patterns, research citations, new AEO checks, or before/after examples. All contributions must be tested on real customer work."
+---
+
+GTM Engineer Skills improves through real customer work. When you use these skills on actual sites and find that a framework pattern is missing, a check is outdated, or a research finding should be added, that's the right time to contribute. Speculative improvements that haven't been tested on a real codebase don't belong here — the bar is that it worked.
+
+## Ways to contribute
+
+<CardGroup cols={2}>
+  <Card title="Add a framework pattern" icon="code">
+    If your framework isn't covered — Angular, Gatsby, Eleventy with a specific template engine, plain HTML — add a section under "Framework-Specific Patterns" in `SKILL.md`. Cover all five areas: metadata, JSON-LD, robots.txt, sitemap, and RSS.
+  </Card>
+  <Card title="Add or update research" icon="flask">
+    All statistics must come from verifiable primary sources. If you find a new peer-reviewed study or large-scale industry analysis that adds a concrete, measurable finding, add it to the Research References table in `SKILL.md`.
+  </Card>
+  <Card title="Improve check coverage" icon="list-check">
+    If [aeo-audit.sh](https://aeo-audit.sh) adds new checks that aren't covered in `SKILL.md`, add fix instructions for them in the appropriate priority section.
+  </Card>
+  <Card title="Add examples" icon="arrow-right-arrow-left">
+    Add before/after examples to the `examples/` directory showing real score improvements. Use the format in existing examples (e.g., `nextjs-blog-before-after.md`).
+  </Card>
+</CardGroup>
+
+## Adding a framework pattern
+
+<Steps>
+  <Step title="Add a section in SKILL.md">
+    Open `improve-aeo-geo/SKILL.md` and add a new subsection under "Framework-Specific Patterns" using the framework name as the heading (e.g., `### Angular`).
+  </Step>
+  <Step title="Cover all five implementation areas">
+    Each framework pattern must include working code for: metadata setup (title, description, Open Graph, canonical), JSON-LD injection, robots.txt configuration, sitemap generation with `<lastmod>`, and RSS/Atom feed setup.
+  </Step>
+  <Step title="Test against the AEO audit">
+    Run a site built with your framework pattern through [aeo-audit.sh](https://aeo-audit.sh) to confirm the patterns actually pass the checks. Don't add untested patterns.
+  </Step>
+  <Step title="Submit a PR with the framework name in the branch">
+    Use a branch name like `add-angular-patterns` or `add-gatsby-patterns` so the PR scope is clear at a glance.
+  </Step>
+</Steps>
+
+## Adding research
+
+Research contributions have strict requirements. The goal is to add only findings that readers can independently verify.
+
+- **Include the exact finding with numbers** — "pages with FAQ sections average 4.9 AI citations vs. 4.4 without," not "FAQ sections help with AI citations"
+- **Name the source** — paper title, organization name, and author where applicable
+- **Include year and methodology** — when the study was published and how large the dataset was (e.g., "2.3M pages analyzed")
+- **Add a link to the primary source** — a direct link to the paper, blog post, or report, not a secondary summary
+- **Add it to the Research References table in `SKILL.md`** — using the `Claim | Source` format already in the table
+
+Do not add unverifiable or secondary-source statistics. If you can't link directly to the original study, don't include the number. Hedged language like "studies suggest" without a citation is not acceptable.
+
+## Skill structure
+
+Every skill in the repo follows this layout:
+
+```
+<skill-name>/
+├── SKILL.md      ← Agent prompt
+├── README.md     ← Install instructions
+└── examples/     ← Optional
+```
+
+`SKILL.md` is what the AI reads when the skill is invoked. It should be structured as an agent prompt: precise, directive, and scannable. `README.md` is the human-facing documentation: install instructions, usage examples, and a summary of what the skill does. Keep them separate — content that belongs in one doesn't belong in the other.
+
+## Submission process
+
+<Steps>
+  <Step title="Fork the repo">
+    Fork the `gtm-engineer-skills` repository on GitHub.
+  </Step>
+  <Step title="Create a descriptive branch">
+    Use a branch name that describes the contribution:
+
+    ```bash
+    git checkout -b add-angular-patterns
+    ```
+
+  </Step>
+  <Step title="Make your changes">
+    Keep `SKILL.md` focused as an agent prompt. Keep `README.md` as the human-facing documentation. Be specific and actionable — "add X to file Y" is better than "consider improving Z."
+  </Step>
+  <Step title="Submit a PR with a clear description">
+    Describe what you added and why. If it's a framework pattern, note that you tested it. If it's research, include the source link in the PR description.
+  </Step>
+</Steps>
+
+## Key rules from AGENT.md
+
+These rules apply across all GTM Engineer Skills — not just the AEO/GEO skill:
+
+- **SEO keywords: 1–3 words.** Longer phrases are blog topics, not keyword targets.
+- **GEO prompts: full questions (5–15+ words).** GEO targets are the exact questions people ask AI engines — not short SEO keywords.
+- **No fabricated data.** Every statistic needs a source. If you can't cite it, don't write it.
+- **Skills improve by doing real customer work, not theorizing.** Improvements should come from observing what actually worked on a real site, not from speculating about what might work.
+
+<Note>
+  Keep `SKILL.md` focused as an agent prompt — it's what the AI reads when the skill is invoked. Keep `README.md` as the human-facing documentation. Mixing the two makes both worse.
+</Note>

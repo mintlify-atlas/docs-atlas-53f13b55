@@ -1,0 +1,98 @@
+---
+title: "Find high-value SEO/GEO keywords and produce keywords.csv"
+description: "Finds high-value 1–3 word SEO and GEO keywords using web search and optional Ahrefs/Semrush data, then emits a validated keywords.csv for the content pipeline."
+---
+
+The `research-keywords` skill finds high-value keywords for both traditional SEO and Generative Engine Optimization (GEO). It takes a brand's product, website, and competitive context as inputs, walks through five structured research phases, and delivers a prioritized keyword list as a strict CSV artifact the content pipeline can consume directly.
+
+**Critical rule: SEO target keywords must be 1–3 words.** Longer phrases (4+ words) are blog topics, not target keywords. Keywords longer than 3 words almost never have search volume in tools like Ahrefs — they waste space on the list and will not rank.
+
+## What it produces
+
+The final deliverable is `keywords.csv` — a raw CSV file with exactly 10 columns and a minimum of 10 data rows, ready for downstream content planning without further analysis.
+
+| Column | Type | Required | Allowed values |
+|---|---|---|---|
+| `keyword` | string | yes | 1–3 words, unique |
+| `volume` | integer or empty | no | 0+; empty if unknown |
+| `kd` | integer or empty | no | 0–100; empty if unknown |
+| `intent` | enum | yes | `informational` \| `commercial` \| `research` \| `transactional` |
+| `priority` | enum | yes | `easy_win` \| `target` \| `content` \| `hard` |
+| `cluster` | string | yes | non-empty topic cluster label |
+| `is_pillar` | boolean | yes | `true` \| `false` |
+| `ai_overview_present` | boolean or empty | no | `true` \| `false` \| empty |
+| `source` | string | yes | `ahrefs` \| `semrush` \| `serpapi` \| `autocomplete` \| `paa` \| `reddit` \| `competitor` \| `manual` |
+| `notes` | string | no | free text |
+
+## Usage
+
+Run `research-keywords` after completing `research-brand`. The skill will ask for brand context in Phase 1 and confirm readiness before moving to each subsequent phase.
+
+```text
+/research-keywords
+```
+
+## Five phases
+
+<Steps>
+  <Step title="Brand intelligence">
+    The skill visits the brand's website and each competitor's website to extract seed keywords — 3–5 core category terms (e.g., `project management software`, `AI writing tool`). It reads the homepage, product pages, and blog to capture the brand's terminology, product categories, features, and existing content topics. It then asks the user to confirm the seed keyword list before proceeding.
+  </Step>
+  <Step title="Keyword discovery">
+    Using the seed keywords, the skill casts a wide net across six research methods:
+
+    1. **Google Autocomplete Mining** — searches each seed keyword with modifiers (`for`, `vs`, `best`, `how to`, `without`, `free`) and extracts 1–3 word target keywords from each suggestion
+    2. **People Also Ask (PAA) Mining** — extracts PAA questions for each seed keyword; the core 1–3 word term becomes a target keyword, the full question goes to the Blog Topics list
+    3. **Reddit & Community Mining** — searches `site:reddit.com` for real user language, slang, and pain points that buyers actually use
+    4. **Competitor Content Analysis** — searches each competitor's blog and "vs" pages to find comparison and alternative-seeking keywords they attract
+    5. **Question & Problem Keywords** — searches for problem-awareness keywords using patterns like `how to [solve problem]` and `[industry] challenges [year]`
+    6. **AI Citation Keywords (GEO-specific)** — searches for queries where AI Overviews or featured snippets appear, indicating high GEO opportunity
+
+    The goal is 60–100 SEO target keyword candidates (1–3 words each) and 20–30 blog topics (4+ word phrases). Dead keywords — those with no autocomplete presence, no PAA, and no SERP results — are flagged and removed before the list is presented.
+  </Step>
+  <Step title="Validation and pruning">
+    The skill asks whether the user has an Ahrefs or Semrush account. If yes, it provides the full keyword list as a comma-separated string, the user pastes it into Keyword Explorer, exports the CSV, and shares it back. The skill then parses the export, removes all keywords with zero volume, and extracts Volume, KD, and CPC data.
+
+    If no paid tool is available, the skill uses qualitative signals instead: autocomplete presence, PAA visibility, AI Overview presence, and SERP richness. Keywords with none of these signals are flagged for removal.
+  </Step>
+  <Step title="Analysis and clustering">
+    Every surviving keyword is tagged with search intent (`informational`, `commercial`, `research`, or `transactional`) and assigned a priority level based on KD. Keywords are then grouped into topic clusters — each cluster has one pillar keyword (the broadest, highest-volume term) and 3–8 supporting keywords. The top easy wins (highest volume-to-difficulty ratio with strong relevance) are surfaced as the "do first" list.
+  </Step>
+  <Step title="Deliverable — keywords.csv">
+    The skill emits the final `keywords.csv` artifact. The output is raw CSV with no prose, no code fences, and no explanation — exactly matching the schema above. The harness captures the output verbatim, validates it against the schema, and fails if the shape is wrong.
+  </Step>
+</Steps>
+
+## Priority levels
+
+Priority is assigned based on Keyword Difficulty (KD) when paid tool data is available, or from qualitative SERP competition signals otherwise.
+
+| Priority | KD range | What it means |
+|---|---|---|
+| `easy_win` | 0–15 | Low competition — target immediately |
+| `target` | 16–50 | Winnable with good content and authority |
+| `content` | Any KD (broad or tangential) | Write for topical authority; don't expect to rank directly |
+| `hard` | 50+ | Only pursue with strong domain authority |
+
+## Integrating Ahrefs or Semrush
+
+Paid tool data is always better than qualitative estimation. In Phase 3 the skill will prompt:
+
+> "Do you have an Ahrefs or Semrush account? If yes: I'll give you the comma-separated keyword list → you paste it into Keyword Explorer → get the overview → export the CSV and share it with me → I'll use the real volume/KD data to filter and prioritize."
+
+When the user provides the export, the skill reads and parses the CSV (handling UTF-16LE encoding for Ahrefs exports), removes all zero-volume keywords, and integrates the real metrics into the final output. Ahrefs exports are saved to the project directory as `ahrefs_keyword_data.csv` for reference.
+
+<Warning>
+Keywords must be 1–3 words. Longer phrases are blog topics, not target keywords. A phrase like "how to collect robot training data" is not a keyword — the keyword is `robot training data` and the full phrase belongs in the Blog Topics list. This rule is non-negotiable: keywords longer than 3 words almost never carry search volume in Ahrefs or Semrush.
+</Warning>
+
+## Example keywords.csv output
+
+```text
+keyword,volume,kd,intent,priority,cluster,is_pillar,ai_overview_present,source,notes
+synthetic data,2400,42,research,target,synthetic_data,true,true,ahrefs,high GEO signal
+data labeling,1900,38,commercial,target,synthetic_data,false,true,ahrefs,
+vla model,320,12,research,easy_win,robotics_models,true,,serpapi,uncontested niche
+robot training,880,35,commercial,target,robotics_models,false,false,ahrefs,
+teleoperation,210,28,research,easy_win,robotics_models,false,,paa,strong PAA coverage
+```

@@ -1,0 +1,142 @@
+---
+title: "Research and document brand DNA from a company URL"
+description: "Give the skill a URL and it crawls the site, runs targeted web searches, maps 3–5 competitors, and produces a self-contained brand_dna.md file."
+---
+
+The `research-brand` skill acts as a brand intelligence researcher. Given any company URL it crawls the website, runs targeted web searches, identifies 3–5 direct competitors, and synthesizes everything into a single `brand_dna.md` file — a complete picture of the brand's positioning, audience, voice, pricing, and content gaps. Every downstream skill in the GTM Engineer pipeline depends on this file as its starting point.
+
+## What it produces
+
+`brand_dna.md` is a structured markdown file that anyone on the GTM team can read without visiting the website. It covers twelve sections:
+
+| Section | What's in it |
+|---|---|
+| **Overview** | URL, one-liner, category, stage, funding, founded year, team |
+| **What It Does** | 2–3 plain-language sentences on the problem, audience, and solution |
+| **Key Features** | Up to 8 named features with one-line descriptions |
+| **Target Customer** | 2–3 personas with role and pain point |
+| **Pricing** | Tiers, model, or "Not public" if unavailable |
+| **Competitors** | Table of 3–5 competitors with overlap and differentiators |
+| **Differentiators** | What makes this brand unique — specific, not generic |
+| **Brand Voice** | Tone, language patterns, positioning framing |
+| **Social Proof** | Customer logos, testimonials, G2/Capterra scores, app store ratings |
+| **Online Presence** | LinkedIn, Twitter/X, blog, GitHub, Discord, and other channels |
+| **Content Gaps** | What's missing from the site that matters for SEO/GEO — with reasoning |
+| **Raw Notes** | Context, quotes, and observations that don't fit elsewhere |
+
+## Usage
+
+Invoke the skill with a URL. An optional one-liner about the company helps bootstrap Phase 1 faster but is not required.
+
+```text
+/research-brand https://www.example.com
+```
+
+## Process
+
+<Steps>
+  <Step title="Crawl the website">
+    The skill fetches the homepage, `/about`, `/pricing`, `/product` or `/features`, the first page of `/blog`, and `/customers` or `/case-studies` (skipping any that 404). From these pages it extracts the product description in the company's own words, tagline, features, pricing tiers, target audience signals, tech stack mentions, and social proof (customer logos, testimonials, metrics).
+  </Step>
+  <Step title="Search the web">
+    Seven targeted searches fill the gaps the website leaves: third-party product descriptions, Crunchbase and Y Combinator profiles, LinkedIn company page, app store listings if applicable, reviews and alternatives, "vs" comparisons (which reveal organic competitor associations), and category landscape queries. This step surfaces funding stage, team and founder backgrounds, user sentiment, and competitor mentions.
+  </Step>
+  <Step title="Identify competitors">
+    From the crawl and web search data, 3–5 direct competitors are compiled. For each, the skill records the name and URL, a one-line description, where they overlap with the brand, and their key differentiator. If competitors are unclear, additional searches for `[category] alternatives` and `[category] comparison` are run.
+  </Step>
+  <Step title="Synthesize the Brand DNA">
+    All findings are written into `brand_dna.md` using the exact template structure below. Third-party language is preferred over the company's marketing copy — external descriptions are usually more accurate. If funding, pricing, or team information cannot be found, the file says "Not disclosed" or "Not found" — never guesses.
+  </Step>
+  <Step title="Deliver with findings and next steps">
+    The skill saves `brand_dna.md` to the project directory, reports the top 3 most interesting findings (things the team might not know about their own brand's positioning), and suggests the next skills to run.
+  </Step>
+</Steps>
+
+## brand_dna.md template
+
+The output file always uses this structure:
+
+```markdown
+# Brand DNA — [Company Name]
+
+## Overview
+- **Website:** [URL]
+- **One-liner:** [What they do in one sentence — third-party language, not marketing fluff]
+- **Category:** [Product category]
+- **Stage:** [Seed / Series A / Growth / Public / Unknown]
+- **Funding:** [Amount if known, else "Not disclosed"]
+- **Founded:** [Year if known]
+- **Team:** [Founder names + backgrounds if found]
+
+## What It Does
+[2-3 sentences. Plain language. What problem does it solve, for whom, and how.]
+
+## Key Features
+1. **[Feature name]** — [one-line description]
+2. **[Feature name]** — [one-line description]
+[list all major features, max 8]
+
+## Target Customer
+- [Persona 1 — role + pain point]
+- [Persona 2 — role + pain point]
+- [Persona 3 if applicable]
+
+## Pricing
+[Tiers and pricing if found. "Free", "Freemium", "Not public" if unknown.]
+
+## Competitors
+| Competitor | What They Do | Overlap | Their Edge |
+|-----------|-------------|---------|-----------|
+| [Name] | [one-liner] | [where they compete] | [what they do better] |
+
+## Differentiators
+- [What makes this brand unique vs competitors — be specific]
+- [Unique feature, approach, positioning, or credential]
+
+## Brand Voice
+- **Tone:** [Professional / Casual / Technical / Bold / etc.]
+- **Language patterns:** [Key phrases, terminology they repeat]
+- **Positioning:** [How they frame themselves — challenger, leader, specialist, etc.]
+
+## Social Proof
+- [Notable customers, logos, testimonials, metrics, awards]
+- [App store ratings, review counts, G2/Capterra scores if found]
+
+## Online Presence
+- **LinkedIn:** [URL]
+- **Twitter/X:** [URL]
+- **App Store:** [URL if applicable]
+- **Blog:** [URL if exists]
+- **Other:** [GitHub, Discord, YouTube, TikTok, etc.]
+
+## Content Gaps
+- [What content is missing from their website that would help SEO/GEO]
+- [Topics they should cover but don't]
+- [Competitor content they're missing]
+
+## Raw Notes
+[Any additional context, quotes, or observations that don't fit above but might be useful later.]
+```
+
+## Output file
+
+`brand_dna.md` is the primary input for every other GTM Engineer skill. It is designed to be self-contained — anyone reading it should understand the brand without visiting the website. Run this skill once per brand before using any skill that takes brand context as input.
+
+<Tip>
+The **Content Gaps** section is the most actionable section for SEO and GEO strategy. The skill is opinionated here by design: it does not just list what is missing, it explains why each gap matters. This is where you will find the clearest signal for which pages to build first.
+</Tip>
+
+<Note>
+**Rules the skill follows:** It crawls the website before searching the web — the site is the primary source and web search fills gaps. It always prefers third-party language over the company's own marketing copy (external descriptions are more accurate). It never fabricates: if funding, pricing, or team data is not found, it says so explicitly rather than guessing.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Research keywords" icon="magnifying-glass" href="/skills/research-keywords">
+    Find SEO target keywords (1–3 words) and produce `keywords.csv` using the brand DNA as context.
+  </Card>
+  <Card title="GEO content research" icon="robot" href="/skills/geo-content-research">
+    Research natural-language prompts people ask AI engines and produce `prompts.csv`.
+  </Card>
+</CardGroup>

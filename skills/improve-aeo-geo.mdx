@@ -1,0 +1,230 @@
+---
+title: 'Audit and fix website AEO and GEO for AI discovery'
+description: 'Audits a website against 16 foundational AEO checks and 6 content dimensions, then makes targeted code fixes so AI engines can discover and cite it.'
+---
+
+AI engines — ChatGPT, Claude, Perplexity, Google AI Overviews — don't browse like humans. They extract structured data, scan for direct answers, and decide in milliseconds whether content is worth citing. This skill audits your website codebase and makes concrete code changes to fix the signals that determine whether your site gets cited. It covers structured data, content structure, technical access signals, and freshness — across every major web framework.
+
+<Note>
+Check your score first at [aeo-audit.sh](https://aeo-audit.sh) before running the skill. Get a baseline score to measure improvement against.
+</Note>
+
+## What it does
+
+When invoked on a codebase, the skill:
+
+1. Detects the framework (Next.js, Nuxt, Astro, SvelteKit, WordPress, Hugo, Jekyll, 11ty, and more)
+2. Finds where `<head>` is managed and where content lives
+3. Audits against 16 foundational checks and 6 content quality dimensions
+4. Makes targeted code changes in priority order — blockers first, then high-impact structure, then content quality
+5. Recommends verifying the updated score at [aeo-audit.sh](https://aeo-audit.sh)
+
+## Scoring model
+
+The AEO audit score combines two equal halves:
+
+**Foundational Score (50%)** — 16 deterministic, pass/fail checks aggregated site-wide. 80% or more of audited pages must pass each check for it to count as passing.
+
+**Intelligence Score (50%)** — 6 LLM-evaluated content quality dimensions, each scored 0-5.
+
+The final score maps to a letter grade. Key reference points from the scoring model:
+
+| Score | Grade |
+|-------|-------|
+| 95–100 | A+ |
+| 90–94 | A |
+| 80–84 | B+ |
+| Below 40 | F |
+
+**Target: 80+ (B+ or higher).**
+
+## The 16 foundational checks
+
+| Check | Points | Pass Criteria |
+|---|---|---|
+| AI bot access (robots.txt) | 12 | 9 AI crawlers not blocked |
+| Text depth | 12 | 250+ words per page |
+| Page title | 10 | 10+ characters |
+| Meta description | 10 | 50+ characters |
+| Internal linking | 10 | 5+ internal links per page |
+| Indexability | 10 | No `noindex` on public pages |
+| llms.txt | 10 | Valid file at `/.well-known/llms.txt` |
+| JSON-LD structured data | 8 | At least 1 JSON-LD block per page |
+| Schema types | 8 | Recognized `@type` values |
+| Canonical URL | 8 | `rel="canonical"` present |
+| Single H1 | 8 | Exactly 1 `<h1>` per page |
+| Open Graph | 8 | `og:title` + `og:description` |
+| Image alt text | 8 | 80%+ images have `alt` |
+| RSS feed | 8 | Discoverable RSS/Atom feed |
+| Heading hierarchy | 6 | H1 → H2 → H3, no skips |
+| AI meta tags | 6 | No `nosnippet`/`noai`/`noimageai` |
+
+## The 6 GEO intelligence dimensions
+
+| Dimension | What It Measures |
+|---|---|
+| Answer Readiness | Direct answers in opening paragraphs, before supporting detail |
+| Quotability | Self-contained, extractable passages that make sense in isolation |
+| Evidence Density | Statistics, named sources, and citations inline throughout content |
+| Content Depth | Substantive, multi-faceted coverage with sufficient word count |
+| Freshness | Publication dates, update signals, and `article:modified_time` metadata |
+| Structural Clarity | Semantic HTML, clean heading outline, server-rendered content |
+
+## Fix priority order
+
+<Steps>
+  <Step title="Priority 1 — Blockers">
+    Fix these before anything else. If AI bots can't access or read your pages, no other optimization matters.
+
+    - **AI bot access** (12 pts) — robots.txt must not block GPTBot, ClaudeBot, PerplexityBot, Google-Extended, OAI-SearchBot, anthropic-ai, ChatGPT-User, Bytespider, or CCBot
+    - **AI-accessible meta tags** (6 pts) — remove `nosnippet`, `noai`, and `noimageai` from robots meta tags and `X-Robots-Tag` headers on public pages
+    - **Indexability** (10 pts) — remove `<meta name="robots" content="noindex">` from public-facing pages
+  </Step>
+  <Step title="Priority 2 — High-impact structure">
+    These checks have the largest point value and affect every page on the site.
+
+    - **JSON-LD structured data** (8 + 8 pts) — every page needs at least one `<script type="application/ld+json">` block with a recognized `@type`
+    - **Page titles** (10 pts) — unique, descriptive `<title>` of 10+ characters on every page; format: `[Page Topic] | [Brand]`, 50-60 chars
+    - **Meta descriptions** (10 pts) — unique `<meta name="description">` of 50+ characters; lead with the answer, not filler; 120-160 chars ideal
+    - **Text depth** (12 pts) — 250+ words of readable body text per page, excluding nav and footer; aim for 500-2000 words on key pages
+    - **llms.txt** (10 pts) — create `/.well-known/llms.txt` with a heading, links, and 100+ characters
+  </Step>
+  <Step title="Priority 3 — Content quality">
+    - **Heading hierarchy** (6 + 8 pts) — exactly 1 `<h1>` per page, H1 → H2 → H3 with no skipped levels
+    - **Internal linking** (10 pts) — 5+ internal links per page; add breadcrumbs, related posts, and contextual inline links
+    - **Canonical URL** (8 pts) — `<link rel="canonical">` with an absolute URL on every page
+    - **Open Graph** (8 pts) — `og:title`, `og:description`, `og:image`, `og:url`, `og:type` on every page
+    - **Image alt coverage** (8 pts) — 80%+ of `<img>` tags have `alt`; describe the conclusion, not the visual form
+    - **RSS feed** (8 pts) — publish a feed and add the `<link rel="alternate" type="application/rss+xml">` discovery tag
+  </Step>
+  <Step title="Priority 4 — GEO content optimization">
+    Backed by peer-reviewed research. These changes improve the Intelligence Score half of the final grade.
+
+    - Add quotations from authoritative sources
+    - Add statistics and specific data points
+    - Cite sources with inline named references
+    - Restructure content to lead with direct answers
+    - Add FAQ sections with FAQPage JSON-LD schema
+    - Add and display publication and modification dates
+  </Step>
+</Steps>
+
+## robots.txt template
+
+If robots.txt does not exist, or if it blocks any AI crawler, replace or create it with the following:
+
+```txt
+User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://YOURDOMAIN.com/sitemap.xml
+```
+
+## llms.txt template
+
+Create `/.well-known/llms.txt` with this structure. Replace all placeholder values with real content:
+
+```markdown
+# [Your Site Name]
+
+> Brief description of what your site/product does.
+
+## Documentation
+- [Getting Started](https://yourdomain.com/docs/getting-started)
+- [API Reference](https://yourdomain.com/docs/api)
+
+## Key Pages
+- [About](https://yourdomain.com/about)
+- [Pricing](https://yourdomain.com/pricing)
+- [Blog](https://yourdomain.com/blog)
+
+## Policies
+- [Terms of Service](https://yourdomain.com/terms)
+- [Privacy Policy](https://yourdomain.com/privacy)
+```
+
+Also consider creating `llms-full.txt` with the complete content of key pages inlined for direct LLM consumption.
+
+## Supported frameworks
+
+The skill provides framework-specific code patterns for all 10 major frameworks:
+
+| Framework | Key patterns |
+|---|---|
+| Next.js (App Router) | `metadata` exports, JSON-LD, `robots.ts`, `sitemap.ts` |
+| Nuxt 3 | `useSeoMeta`, `nuxt-schema-org` |
+| SvelteKit | `<svelte:head>`, JSON-LD injection |
+| Astro | layout props, `@astrojs/sitemap` |
+| Remix | `meta` function, link tags |
+| WordPress | `functions.php`, Yoast/Rank Math integration |
+| Hugo | partials, built-in RSS, template variables |
+| Jekyll | `jekyll-seo-tag`, `jekyll-feed` gems |
+| 11ty | Nunjucks templates, eleventy plugins |
+| Plain HTML | Direct tag implementation |
+
+## GEO content strategies
+
+These strategies are backed by peer-reviewed research and large-scale industry studies. All findings are from verifiable primary sources.
+
+**Quotations from authoritative sources: +41% AI visibility**
+The single most effective GEO strategy (GEO paper, Aggarwal et al., KDD 2024 — Princeton, Georgia Tech, IIT Delhi, Allen AI). Include direct quotes from experts, studies, or official sources.
+
+> Weak: "Experts say this approach works well."
+> Strong: "As Dr. Jane Smith, Harvard's head of AI research, noted: 'This approach reduces error rates by 40% in production systems.'"
+
+**Statistics and data points: +33% AI visibility**
+The second-highest impact strategy from the same peer-reviewed paper. Include specific numbers, percentages, dates, and measurements. Every 150-200 words should contain at least one data point.
+
+**Cite sources with inline references: +28% AI visibility**
+Name sources inline and link to studies, reports, and official documentation. Lower-ranked sites see the greatest gain — sites originally ranked 4th-5th saw up to +115% visibility improvement from citing sources (GEO paper, KDD 2024).
+
+**Answer-first content structure**
+44.2% of ChatGPT citations come from the first 30% of page content (Kevin Indig, Growth Memo, 2026 — 1.2M AI answers analyzed). Lead every section with the direct answer before supporting detail.
+
+**FAQ sections**
+Pages with FAQ sections average 4.9 AI citations vs. 4.4 without (SE Ranking, 2025 — 2.3M pages). Add both the HTML structure and FAQPage JSON-LD schema.
+
+**Freshness signals**
+Content updated within 3 months averages 6 AI citations vs. 3.9 for content over 2 years old (SE Ranking, 2025). AI assistants cite content 25.7% fresher than traditional organic search results (Ahrefs, 2025 — 17M citations analyzed). Add `article:published_time` and `article:modified_time` meta tags, and display a visible "Last updated" date on every content page.
+
+## Examples
+
+<CardGroup cols={2}>
+  <Card title="Next.js Blog: 42 → 87" icon="arrow-trend-up">
+    A typical Next.js blog (D grade) improved to 87/100 (A-) in ~45 minutes. Key fixes: unblocked AI crawlers in robots.txt, added JSON-LD, generated metadata via `generateMetadata`, created llms.txt, added RSS feed, rewrote post intros to lead with direct answers.
+  </Card>
+  <Card title="WordPress Site: 31 → 82" icon="arrow-trend-up">
+    A small business WordPress site (F grade) improved to 82/100 (B+). Key fixes: removed Wordfence bot-blocking rules, stripped `nosnippet` from the theme, added JSON-LD via functions.php, expanded homepage from 80 to 650 words, added Yoast SEO, restructured heading hierarchy.
+  </Card>
+</CardGroup>
+
+<Tip>
+Target 80+ AEO score (B+ grade or higher). Validate at [aeo-audit.sh](https://aeo-audit.sh) after making changes to measure the improvement against your baseline.
+</Tip>

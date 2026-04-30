@@ -1,0 +1,143 @@
+---
+title: "GTM engineering workflow: all 10 skills in sequence"
+description: "See how all 10 skills connect in sequence, each producing artifact files that feed the next step, from brand DNA to content creation to AEO code fixes."
+---
+
+The skills in this collection are designed to run in sequence. Each step reads the output files from the previous step and produces new artifacts that the next step consumes. You don't have to run the whole pipeline in one session — pause after any step and resume later. The artifact files act as checkpoints.
+
+<Info>
+  Steps marked **a**, **b**, or **c** in the pipeline (steps 2 and 4) can run in parallel. They draw from the same inputs and produce independent outputs that all feed into the next step.
+</Info>
+
+## Pipeline steps
+
+<Steps>
+  <Step title="Research brand DNA">
+    **Skill:** `research-brand`
+
+    Crawl a company URL and produce a comprehensive brand positioning file.
+
+    **Input:** Company URL
+    **Output:** `brand_dna.md` — positioning, audience, competitors, voice, messaging
+  </Step>
+
+  <Step title="Run parallel research (steps 2a, 2b, 2c)">
+    All three research skills read from `brand_dna.md` and can run in any order or simultaneously.
+
+    **2a — `research-keywords`**
+    Find high-value 1–3 word SEO keywords using web search and optionally Ahrefs or Semrush.
+    **Input:** Brand DNA + product category
+    **Output:** `keywords.csv` — validated keyword list with volume, KD, intent, and priority
+
+    **2b — `reddit-opportunity-research`**
+    Find pain-point discussions, target subreddits, and search-language patterns on Reddit.
+    **Input:** Brand DNA + optional keyword/GEO files
+    **Output:** `reddit_opportunities.md` — ranked subreddit and thread opportunities
+
+    **2c — `geo-content-research`**
+    Research what prompts people ask AI engines about your product category.
+    **Input:** Brand DNA + product category
+    **Output:** `prompts.csv` — AI prompts by business-value tier (buy/solve/learn)
+  </Step>
+
+  <Step title="Plan content architecture">
+    **Skill:** `geo-content-planning`
+
+    Read brand DNA, keyword research, GEO prompt targets, and Reddit signals together. Produce a unified content plan.
+
+    **Input:** `brand_dna.md` + `keywords.csv` + `prompts.csv` + `reddit_opportunities.md`
+    **Output:** `plan.csv` — page architecture with types, URLs, priorities, and required sections
+  </Step>
+
+  <Step title="Create content (steps 4a and 4b)">
+    Both creation skills read from the content architecture and can run in parallel.
+
+    **4a — `write-seo-geo-content`**
+    Write product-led content pages optimized for search engines and AI engine citations. Research-first methodology; no fabricated statistics.
+    **Input:** Content architecture + research files
+    **Output:** Markdown articles with frontmatter
+
+    **4b — `create-geo-charts`**
+    Create data visualizations that AI engines can parse, quote, and cite. Every chart includes a plain-text summary, an HTML data table, and JSON-LD.
+    **Input:** Data from articles
+    **Output:** SVG charts + HTML data tables + JSON-LD structured data
+  </Step>
+
+  <Step title="Audit content">
+    **Skill:** `audit-content`
+
+    Verify truthfulness, accuracy, and link integrity of all content before publishing. Catches fabricated statistics, dead URLs, and misattributed sources.
+
+    **Input:** Articles + `brand_dna.md`
+    **Output:** Audit reports with verified URLs, confirmed stats, and flagged claims
+  </Step>
+
+  <Step title="Publish and optimize (steps 6a and 6b)">
+    Both implementation skills read from audited content and can run in parallel.
+
+    **6a — `build-resource-pages`**
+    Take audited content markdown files and build production-ready resource center pages on client websites using the site's existing tech stack and design system.
+    **Input:** Audited content + client codebase
+    **Output:** Frontend resource center pages
+
+    **6b — `improve-aeo-geo`**
+    Audit the website codebase and make code-level changes so AI engines can better discover, parse, quote, and cite the site.
+    **Input:** Client website codebase
+    **Output:** Code fixes for AI discoverability
+  </Step>
+</Steps>
+
+## Artifact pipeline
+
+The table below shows every step's inputs and outputs at a glance.
+
+| Step | Skill | Input | Output |
+|------|-------|-------|--------|
+| 1 | `research-brand` | Company URL | `brand_dna.md` — positioning, audience, competitors, voice |
+| 2a | `research-keywords` | Brand DNA + product category | `keywords.csv` — validated keyword list with volume, KD, intent, priority |
+| 2b | `reddit-opportunity-research` | Brand DNA + optional keyword/GEO files | `reddit_opportunities.md` — ranked subreddit and thread opportunities |
+| 2c | `geo-content-research` | Brand DNA + product category | `prompts.csv` — AI prompts by business-value tier (buy/solve/learn) |
+| 3 | `geo-content-planning` | `brand_dna.md` + `keywords.csv` + `prompts.csv` | `plan.csv` — page architecture with types, URLs, priorities, required sections |
+| 4a | `write-seo-geo-content` | Content architecture + research | Markdown articles with frontmatter |
+| 4b | `create-geo-charts` | Data from articles | SVG charts + HTML tables + JSON-LD |
+| 5 | `audit-content` | Articles + Brand DNA | Audit reports — verified URLs, stats, claims |
+| 6a | `build-resource-pages` | Audited content + client codebase | Frontend resource center pages |
+| 6b | `improve-aeo-geo` | Client website codebase | Code fixes for AI discoverability |
+
+## Workspace structure
+
+Customer work lives in the `workspace/` directory at the repo root. This directory is gitignored, so nothing inside it is committed.
+
+Create one subdirectory per customer and store all artifacts there:
+
+```
+workspace/
+└── <customer-name>/
+    ├── brand_dna.md
+    ├── keywords.csv
+    ├── prompts.csv
+    ├── plan.csv
+    ├── reddit_opportunities.md
+    └── content/
+        ├── resources/guides/
+        ├── resources/comparisons/
+        ├── resources/learn/
+        └── resources/blog/
+```
+
+Keeping artifacts organized per customer makes it easy to re-run a specific step — for example, refreshing keyword research without touching content files — and to feed real results back into skill improvements over time.
+
+<Note>
+  **Platform difference for `reddit-opportunity-research`:** The workflow is useful in both Claude Code and Codex, but the Reddit access experience differs. ChatGPT has native Reddit access built into the product, so Codex can browse Reddit directly. Claude generally does not have native Reddit access, so outputs may differ when using this skill in Claude Code.
+</Note>
+
+## Start here
+
+<CardGroup cols={2}>
+  <Card title="research-brand" icon="dna" href="/skills/research-brand">
+    The first skill in the pipeline — turn a company URL into a complete `brand_dna.md` that all downstream skills depend on
+  </Card>
+  <Card title="improve-aeo-geo" icon="gauge-high" href="/skills/improve-aeo-geo">
+    The final optimization skill — audit and fix your website so AI engines can discover, parse, and cite it
+  </Card>
+</CardGroup>

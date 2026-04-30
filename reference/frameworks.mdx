@@ -1,0 +1,288 @@
+---
+title: "Framework-specific AEO/GEO implementation patterns"
+description: "Production-ready code patterns for metadata, JSON-LD structured data, robots.txt, sitemaps, and RSS feeds across 10 web frameworks."
+---
+
+The improve-aeo-geo skill provides production-ready code patterns for 10 web frameworks. Each pattern covers the five implementation areas that matter most for AEO: metadata (title, description, canonical, Open Graph), JSON-LD structured data, robots.txt with AI crawler allowlisting, sitemap with `<lastmod>` dates, and RSS/Atom feed setup. Copy these patterns directly into your project — they are not pseudocode.
+
+<Tabs>
+  <Tab title="Next.js">
+    **Metadata** — `app/page.tsx` or `app/layout.tsx`:
+
+    ```typescript
+    import type { Metadata } from 'next'
+
+    export const metadata: Metadata = {
+      title: 'Page Title | Brand',
+      description: 'Descriptive meta description of 120-160 characters.',
+      alternates: { canonical: 'https://yourdomain.com/page' },
+      openGraph: {
+        title: 'Page Title',
+        description: 'Social sharing description.',
+        url: 'https://yourdomain.com/page',
+        images: [{ url: 'https://yourdomain.com/og-image.jpg' }],
+      },
+      robots: { index: true, follow: true },
+    }
+    ```
+
+    **JSON-LD** — inline in the page component:
+
+    ```tsx
+    export default function Page() {
+      const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: 'Article Title',
+        datePublished: '2025-01-15',
+        dateModified: '2025-06-01',
+        author: { '@type': 'Person', name: 'Author Name' },
+      }
+      return (
+        <>
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+          <article><h1>Article Title</h1>{/* Content */}</article>
+        </>
+      )
+    }
+    ```
+
+    **robots.txt** — `app/robots.ts`:
+
+    ```typescript
+    import type { MetadataRoute } from 'next'
+
+    export default function robots(): MetadataRoute.Robots {
+      return {
+        rules: [
+          { userAgent: '*', allow: '/' },
+          { userAgent: 'GPTBot', allow: '/' },
+          { userAgent: 'ClaudeBot', allow: '/' },
+          { userAgent: 'PerplexityBot', allow: '/' },
+          { userAgent: 'Google-Extended', allow: '/' },
+        ],
+        sitemap: 'https://yourdomain.com/sitemap.xml',
+      }
+    }
+    ```
+
+    **Sitemap** — `app/sitemap.ts`:
+
+    ```typescript
+    import type { MetadataRoute } from 'next'
+
+    export default function sitemap(): MetadataRoute.Sitemap {
+      return [
+        { url: 'https://yourdomain.com', lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
+        { url: 'https://yourdomain.com/about', lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+      ]
+    }
+    ```
+  </Tab>
+  <Tab title="Nuxt 3">
+    **Metadata** — in `app.vue` or page components:
+
+    ```vue
+    <script setup>
+    useSeoMeta({
+      title: 'Page Title | Brand',
+      description: 'Descriptive meta description.',
+      ogTitle: 'Page Title',
+      ogDescription: 'Social sharing description.',
+      ogImage: 'https://yourdomain.com/og-image.jpg',
+    })
+    useHead({
+      link: [{ rel: 'canonical', href: 'https://yourdomain.com/page' }],
+    })
+    </script>
+    ```
+
+    **JSON-LD** — using `useSchemaOrg` from `nuxt-schema-org`:
+
+    ```vue
+    <script setup>
+    useSchemaOrg([
+      defineArticle({
+        headline: 'Article Title',
+        datePublished: '2025-01-15',
+        dateModified: '2025-06-01',
+        author: { name: 'Author Name' },
+      }),
+    ])
+    </script>
+    ```
+  </Tab>
+  <Tab title="SvelteKit">
+    **Metadata** — in `+page.svelte` or `+layout.svelte`:
+
+    ```svelte
+    <svelte:head>
+      <title>Page Title | Brand</title>
+      <meta name="description" content="Descriptive meta description." />
+      <link rel="canonical" href="https://yourdomain.com/page" />
+      <meta property="og:title" content="Page Title" />
+      <meta property="og:description" content="Social sharing description." />
+    </svelte:head>
+    ```
+
+    **JSON-LD** — also inside `<svelte:head>`:
+
+    ```svelte
+    <svelte:head>
+      {@html `<script type="application/ld+json">${JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Article Title",
+        "datePublished": "2025-01-15"
+      })}</script>`}
+    </svelte:head>
+    ```
+  </Tab>
+  <Tab title="Astro">
+    **Base layout** — `src/layouts/Base.astro`:
+
+    ```astro
+    ---
+    const { title, description, canonical, publishedDate } = Astro.props
+    ---
+    <head>
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <link rel="canonical" href={canonical} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      {publishedDate && <meta property="article:published_time" content={publishedDate} />}
+      <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/feed.xml" />
+    </head>
+    ```
+
+    Use `@astrojs/sitemap` for automatic sitemap generation with `lastmod` dates.
+  </Tab>
+  <Tab title="Remix">
+    **Metadata** — route `meta` function export:
+
+    ```typescript
+    export const meta: MetaFunction = () => [
+      { title: 'Page Title | Brand' },
+      { name: 'description', content: 'Descriptive meta description.' },
+      { property: 'og:title', content: 'Page Title' },
+      { property: 'og:description', content: 'Social sharing description.' },
+      { tagName: 'link', rel: 'canonical', href: 'https://yourdomain.com/page' },
+    ]
+    ```
+  </Tab>
+  <Tab title="WordPress">
+    **functions.php** — Add JSON-LD schema for blog posts:
+
+    ```php
+    function add_json_ld_schema() {
+      if (is_singular('post')) {
+        $schema = [
+          '@context' => 'https://schema.org',
+          '@type' => 'Article',
+          'headline' => get_the_title(),
+          'datePublished' => get_the_date('c'),
+          'dateModified' => get_the_modified_date('c'),
+          'author' => ['@type' => 'Person', 'name' => get_the_author()],
+        ];
+        echo '<script type="application/ld+json">' . json_encode($schema) . '</script>';
+      }
+    }
+    add_action('wp_head', 'add_json_ld_schema');
+    ```
+
+    **robots.txt** — WordPress manages this via Settings → Reading. Add AI bot rules via a plugin (Yoast, Rank Math) or a custom `robots.txt` in the web root.
+
+    **llms.txt** — Create `.well-known/llms.txt` in the WordPress root directory, or use a plugin or rewrite rule to serve it at `/.well-known/llms.txt`.
+  </Tab>
+  <Tab title="Hugo">
+    **Metadata** — `layouts/partials/head.html`:
+
+    ```html
+    <title>{{ .Title }} | {{ .Site.Title }}</title>
+    <meta name="description" content="{{ .Description }}" />
+    <link rel="canonical" href="{{ .Permalink }}" />
+    <meta property="og:title" content="{{ .Title }}" />
+    <meta property="og:description" content="{{ .Description }}" />
+    {{ if .Date }}<meta property="article:published_time" content="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}" />{{ end }}
+    {{ if .Lastmod }}<meta property="article:modified_time" content="{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}" />{{ end }}
+    ```
+
+    **JSON-LD** — `layouts/partials/schema.html`:
+
+    ```html
+    {{ if .IsPage }}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "{{ .Title }}",
+      "datePublished": "{{ .Date.Format "2006-01-02" }}",
+      "dateModified": "{{ .Lastmod.Format "2006-01-02" }}",
+      "author": { "@type": "Person", "name": "{{ .Params.author | default .Site.Params.author }}" }
+    }
+    </script>
+    {{ end }}
+    ```
+
+    Hugo generates RSS at `/index.xml` by default. Use `hugo --minify` for clean HTML output.
+  </Tab>
+  <Tab title="Jekyll / 11ty">
+    **Jekyll** — Use the following gems in your `Gemfile`:
+    - `jekyll-seo-tag` — generates title, description, OG, and canonical tags automatically
+    - `jekyll-sitemap` — generates `sitemap.xml` with `<lastmod>` from `date` front matter
+    - `jekyll-feed` — generates an Atom feed at `/feed.xml`
+
+    Add JSON-LD manually in `_includes/head.html` using Liquid templating.
+
+    **11ty** — Use the following plugins:
+    - `@11ty/eleventy-plugin-rss` — Atom/RSS feed generation
+    - `eleventy-plugin-sitemap` — sitemap with `lastmod` support
+
+    Add metadata and JSON-LD in `_includes/base.njk` (Nunjucks) or your chosen template language.
+  </Tab>
+</Tabs>
+
+## robots.txt AI crawler allowlist
+
+Every implementation must explicitly allow all 9 AI crawlers. Blocking any of these crawlers — even by omission if a broad `Disallow: /` rule exists — will prevent AI engines from indexing your content.
+
+```txt
+User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://YOURDOMAIN.com/sitemap.xml
+```
+
+The 9 crawlers to explicitly allow: `GPTBot`, `ClaudeBot`, `PerplexityBot`, `Google-Extended`, `OAI-SearchBot`, `anthropic-ai`, `ChatGPT-User`, `Bytespider`, `CCBot`.
+
+<Note>
+  If AI bots are blocked in robots.txt, nothing else matters. This is the #1 prerequisite for any AEO improvement. Check your existing robots.txt for broad `Disallow` rules that might inadvertently block these crawlers before implementing anything else.
+</Note>
